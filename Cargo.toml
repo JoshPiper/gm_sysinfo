@@ -1,0 +1,15 @@
+[package]
+name = "gm_sysinfo"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "gmcl_sysinfo_win64"
+crate-type = ["cdylib"]
+
+[features]
+gmcl = []
+
+[dependencies]
+gmod = {version = "10.2.1", features = ["gmcl"], default-features = false}
+sysinfo = "*"
