@@ -16,6 +16,12 @@ unsafe fn test_print(lua: State) -> i32 {
     0
 }
 
+#[lua_function]
+unsafe fn test_return(lua: State) -> i32 {
+    lua.push_string("no u");
+    1
+}
+
 #[gmod13_open]
 unsafe fn gmod13_open(lua: State) -> i32 {
     println!("This was before the doobery do.");
@@ -60,6 +66,9 @@ unsafe fn gmod13_open(lua: State) -> i32 {
 
     lua.push_function(test_print);
     lua.set_global(lua_string!("sysinfo_print"));
+
+    lua.push_function(test_return);
+    lua.set_global(lua_string!("sysinfo_getstring"));
 
     0
 }
