@@ -1,12 +1,38 @@
 #![feature(c_unwind)]
 
+use std::borrow::Borrow;
+
 #[cfg(feature = "gmcl")]
 use gmod::gmcl::override_stdout;
+use gethostname::gethostname;
 use gmod::lua::State;
 use gmod::lua_function;
 // use sysinfo::{System, Processor, Disk};
 
 #[macro_use] extern crate gmod;
+
+unsafe fn error(lua: State, err: String){
+    lua.get_global(lua_string!("error"));
+    lua.push_string(err.borrow());
+    lua.call(1, 0);
+}
+
+#[lua_function]
+unsafe fn get_hostname(lua: State) -> i32 {
+    let hostname = gethostname();
+    let hostresult = hostname.into_string();
+
+    let hoststring = match hostresult {
+        Err(e) => {
+            error(lua, format!("An error occurred in sysinfo whilst fetching the system hostname: {:?}", e));
+            "unknown".to_string()
+        },
+        Ok(host) => host,
+    };
+
+    lua.push_string(hoststring.borrow());
+    1
+}
 
 #[lua_function]
 unsafe fn test_print(lua: State) -> i32 {
