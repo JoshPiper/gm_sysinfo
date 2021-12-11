@@ -96,6 +96,16 @@ unsafe fn gmod13_open(lua: State) -> i32 {
     lua.push_function(test_return);
     lua.set_global(lua_string!("sysinfo_getstring"));
 
+    // _G.sysinfo
+    lua.create_table(0, 1);
+
+    // _G.sysinfo.get_hostname
+    lua.push_function(get_hostname);
+    lua.set_field(-2, lua_string!("get_hostname"));
+
+    lua.set_global(lua_string!("sysinfo"));
+
+
     0
 }
 
