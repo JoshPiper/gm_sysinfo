@@ -96,46 +96,11 @@ unsafe fn gmod13_open(lua: State) -> i32 {
 
     println!("This is after the compile block.");
 
-    // println!("Hello from binary module!");
-    // lua.get_global(lua_string!("print"));
-    // lua.push_string("Hello from binary module!");
-    // lua.call(1, 0);
-
-
-    // lua.get_global(lua_string!("PrintTable"));
-
-    // lua.create_table(0, 3);
-    // lua.push_boolean(true);
-    // lua.set_field(-2, lua_string!("from_rust"));
-
-    // lua.push_integer(69);
-    // lua.set_field(-2, lua_string!("funny_number"));
-
-    // lua.create_table(2, 0);
-    // lua.push_integer(10);
-    // lua.raw_seti(-2, 1);
-
-    // lua.push_integer(100);
-    // lua.raw_seti(-2, 2);
-
-    // lua.set_field(-2, lua_string!("nested_table"));
-    // lua.call(1, 0);
-
-    lua.push_function(test_print);
-    lua.set_global(lua_string!("sysinfo_print"));
-
-    lua.push_function(test_return);
-    lua.set_global(lua_string!("sysinfo_getstring"));
-
-    // _G.sysinfo
-    lua.create_table(0, 1);
-
-    // _G.sysinfo.get_hostname
-    lua.push_function(get_hostname);
-    lua.set_field(-2, lua_string!("get_hostname"));
-
+    // Create _G.sysinfo
+    lua.create_table(0, 2);
+    export_lua_function!(get_hostname);
+    export_lua_function!(get_core_count);
     lua.set_global(lua_string!("sysinfo"));
-
 
     0
 }
