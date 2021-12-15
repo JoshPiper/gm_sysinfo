@@ -74,10 +74,10 @@ unsafe fn test_return(lua: State) -> i32 {
 #[gmod13_open]
 unsafe fn gmod13_open(lua: State) -> i32 {
     macro_rules! export_lua_function {
-        ($name:expr) => {
+        ($name:ident) => {
             // _G.sysinfo.$name
             lua.push_function($name);
-            lua.set_field(-2, lua_string!("$name"));
+            lua.set_field(-2, concat!(stringify!($name), "\0").as_ptr() as *const i8);
         }
     }
 
