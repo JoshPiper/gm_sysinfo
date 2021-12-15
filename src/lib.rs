@@ -4,19 +4,48 @@ use std::borrow::Borrow;
 
 #[cfg(feature = "gmcl")]
 use gmod::gmcl::override_stdout;
-use gethostname::gethostname;
 use gmod::lua::{State, LuaInt};
 use gmod::lua_function;
-use sysinfo::{System, Processor, Disk, SystemExt};
+use sysinfo::{System, SystemExt};
+use lazy_static::initialize;
 
 #[macro_use] extern crate lazy_static;
 #[macro_use] extern crate gmod;
 
+static MOD_NAME: &str = "sysinfo";
+macro_rules! err {
+    () => {format!("{} had an error.", MOD_NAME)};
+    ($arg:literal) => {format!("{} was unable to {}", MOD_NAME, $arg)};
+    ($arg:literal, $err:literal) => {format!("{} was unable to {}: {:?}", MOD_NAME, $arg, $err)};
+}
+
 lazy_static! {
-    static ref SYSTEM: System = System::new();
-    static ref CORES: usize = match SYSTEM.physical_core_count() {
+    static ref SYSTEM: System = System::new_all();
+    static ref CORES: usize = match SYSTEM.physical_core_count(){
         Some(cores) => cores,
         None => 0
+    };
+    static ref TOTAL_MEMORY: u64 = SYSTEM.total_memory();
+    static ref TOTAL_SWAP: u64 = SYSTEM.total_swap();
+    static ref SYS_NAME: String = match SYSTEM.name(){
+        Some(name) => name,
+        None => "".to_string()
+    };
+    static ref OS_LONG_VERSION: String = match SYSTEM.long_os_version(){
+        Some(name) => name,
+        None => "".to_string()
+    };
+    static ref OS_VERSION: String = match SYSTEM.os_version(){
+        Some(name) => name,
+        None => "".to_string()
+    };
+    static ref KERNEL_VERSION: String = match SYSTEM.kernel_version(){
+        Some(name) => name,
+        None => "".to_string()
+    };
+    static ref HOST_NAME: String = match SYSTEM.host_name(){
+        Some(name) => name,
+        None => "".to_string()
     };
 }
 
@@ -27,47 +56,90 @@ unsafe fn error(lua: State, err: String){
 }
 
 #[lua_function]
-unsafe fn get_hostname(lua: State) -> i32 {
-    let hostname = gethostname();
-    let hostresult = hostname.into_string();
-
-    let hoststring = match hostresult {
-        Err(e) => {
-            error(lua, format!("An error occurred in sysinfo whilst fetching the system hostname: {:?}", e));
-            "unknown".to_string()
-        },
-        Ok(host) => host,
-    };
-
-    lua.push_string(hoststring.borrow());
-    1
-}
-
-#[lua_function]
 unsafe fn get_core_count(lua: State) -> i32 {
     let cores: usize = CORES.clone();
-    match cores {
-        0 => {
-            error(lua, format!("Sysinfo was unable to read the core count."));
-            lua.push_integer(0);
-        },
-        _ => lua.push_integer(cores as LuaInt)
+    if cores == 0 {
+        error(lua, err!("read the core count"))
     }
 
+    lua.push_integer(cores as LuaInt);
     1
 }
 
 #[lua_function]
-unsafe fn test_print(lua: State) -> i32 {
-    lua.get_global(lua_string!("print"));
-    lua.push_string("Hello from binary function!");
-    lua.call(1, 0);
-    0
+unsafe fn get_memory(lua: State) -> i32 {
+    let memory: u64 = TOTAL_MEMORY.clone();
+    if memory == 0 {
+        error(lua, err!("read the system memory"))
+    }
+
+    lua.push_integer(memory as LuaInt);
+    1
 }
 
 #[lua_function]
-unsafe fn test_return(lua: State) -> i32 {
-    lua.push_string("no u");
+unsafe fn get_swap(lua: State) -> i32 {
+    let memory: u64 = TOTAL_SWAP.clone();
+    if memory == 0 {
+        error(lua, err!("read the system swap space"))
+    }
+
+    lua.push_integer(memory as LuaInt);
+    1
+}
+
+#[lua_function]
+unsafe fn get_system_name(lua: State) -> i32 {
+    let sys_name: &str = SYS_NAME.borrow();
+    if sys_name == "" {
+        error(lua, err!("read the system name"))
+    }
+
+    lua.push_string(sys_name);
+    1
+}
+
+#[lua_function]
+unsafe fn get_system_long_version(lua: State) -> i32 {
+    let sys_ver: &str = OS_LONG_VERSION.borrow();
+    if sys_ver == "" {
+        error(lua, err!("read the system version"))
+    }
+
+    lua.push_string(sys_ver);
+    1
+}
+
+#[lua_function]
+unsafe fn get_system_version(lua: State) -> i32 {
+    let sys_ver: &str = OS_VERSION.borrow();
+    if sys_ver == "" {
+        error(lua, err!("read the system version"))
+    }
+
+    lua.push_string(sys_ver);
+    1
+}
+
+#[lua_function]
+unsafe fn get_kernel_version(lua: State) -> i32 {
+    let sys_ver: &str = KERNEL_VERSION.borrow();
+    if sys_ver == "" {
+        error(lua, err!("read the kernel version"))
+    }
+
+    lua.push_string(sys_ver);
+    1
+}
+
+#[lua_function]
+unsafe fn get_host_name(lua: State) -> i32 {
+    let host_name: &str = HOST_NAME.borrow();
+    if host_name == "" {
+        error(lua, err!("read the system version"))
+    }
+
+    lua.push_string(host_name);
     1
 }
 
@@ -81,25 +153,22 @@ unsafe fn gmod13_open(lua: State) -> i32 {
         }
     }
 
-    println!("This was before the doobery do.");
-
     #[cfg(feature = "gmcl")]{
         override_stdout();
-        println!("Hello client console, from Rust!");
     }
 
-    println!("This has been overwritten.");
-
-    #[cfg(feature = "gmcl")]{
-        println!("Compiled for Client");
-    }
-
-    println!("This is after the compile block.");
+    initialize(&SYSTEM);
 
     // Create _G.sysinfo
     lua.create_table(0, 2);
-    export_lua_function!(get_hostname);
     export_lua_function!(get_core_count);
+    export_lua_function!(get_memory);
+    export_lua_function!(get_swap);
+    export_lua_function!(get_system_name);
+    export_lua_function!(get_system_long_version);
+    export_lua_function!(get_system_version);
+    export_lua_function!(get_kernel_version);
+    export_lua_function!(get_host_name);
     lua.set_global(lua_string!("sysinfo"));
 
     0
