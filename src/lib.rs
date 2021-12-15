@@ -5,11 +5,20 @@ use std::borrow::Borrow;
 #[cfg(feature = "gmcl")]
 use gmod::gmcl::override_stdout;
 use gethostname::gethostname;
-use gmod::lua::State;
+use gmod::lua::{State, LuaInt};
 use gmod::lua_function;
-// use sysinfo::{System, Processor, Disk};
+use sysinfo::{System, Processor, Disk, SystemExt};
 
+#[macro_use] extern crate lazy_static;
 #[macro_use] extern crate gmod;
+
+lazy_static! {
+    static ref SYSTEM: System = System::new();
+    static ref CORES: usize = match SYSTEM.physical_core_count() {
+        Some(cores) => cores,
+        None => 0
+    };
+}
 
 unsafe fn error(lua: State, err: String){
     lua.get_global(lua_string!("error"));
@@ -31,6 +40,20 @@ unsafe fn get_hostname(lua: State) -> i32 {
     };
 
     lua.push_string(hoststring.borrow());
+    1
+}
+
+#[lua_function]
+unsafe fn get_core_count(lua: State) -> i32 {
+    let cores: usize = CORES.clone();
+    match cores {
+        0 => {
+            error(lua, format!("Sysinfo was unable to read the core count."));
+            lua.push_integer(0);
+        },
+        _ => lua.push_integer(cores as LuaInt)
+    }
+
     1
 }
 
