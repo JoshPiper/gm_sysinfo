@@ -31,7 +31,7 @@ console.log(`::set-output name=toolchain::${toolchain}`)
 const file = `gm${realm}_${modname}_${suffixes[`${platform}${arch}`] ?? `${platform}${arch}`}.dll`
 console.log(`::set-output name=file::${file}`)
 
-let feature = features[realm]
+let feature = features[realm] ?? ""
 if (feature !== ""){
 	feature = `--features ${feature}`
 }
