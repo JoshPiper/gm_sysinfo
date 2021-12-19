@@ -1,0 +1,31 @@
+name: Auto-Tag and Build
+
+on:
+  push:
+    branches:
+      - master
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [win, osx, linux]
+        architecture: [32, 64]
+        realm: [cl, sv]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Fetch Toolchain Information
+        run: node build/get-toolchain.js
+        id: toolchain
+        env:
+          PLATFORM: ${{ matrix.platform }}
+          ARCH: ${{ matrix.architecture }}
+          REALM: ${{ matrix.realm }}
+      - name: Build
+        run: cargo build --release ${{ steps.toolchain.output.features }}
+      - name: Take Stock
+        run: pwd && ls && ls target/**
