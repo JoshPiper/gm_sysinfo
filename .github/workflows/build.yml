@@ -7,8 +7,38 @@ on:
       - main
 
 jobs:
-  build-linux:
+  check-changes:
+    name: Check Changes
     runs-on: ubuntu-latest
+    outputs:
+      skipped:  ${{ steps.changelog.outputs.skipped }}
+    steps:
+      - name: Check Changes
+        uses: TriPSs/conventional-changelog-action@v3
+        id: changelog
+        with:
+          github-token: ${{ secrets.github_token }}
+          skip-git-pull: true
+          version-file: "./Cargo.toml"
+          version-path: "package.version"
+          fallback-version: "0.1.0"
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        if: ${{ steps.changelog.outputs.skipped == 'false' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.github_token }}
+        with:
+          tag_name: ${{ steps.changelog.outputs.tag }}
+          name: ${{ steps.changelog.outputs.tag }}
+          body: ${{ steps.changelog.outputs.clean_changelog }}
+          generate_release_notes: false
+          draft: true
+
+  build-linux:
+    name: Build Linux Modules
+    runs-on: ubuntu-latest
+    needs: [check-changes]
+    if: ${{ needs.check-changes.outputs.skipped == 'false' }}
     strategy:
       fail-fast: false
       matrix:
@@ -40,12 +70,26 @@ jobs:
           use-cross: false
           command: build
           args: --release ${{ steps.toolchain.outputs.features }} --target ${{ steps.toolchain.outputs.toolchain }}
-#      - name: Strip Debug Symbols
-#        run: strip target/${{ steps.toolchain.outputs.toolchain }}/release/
+      - name: Strip Debug Symbols
+        run: strip target/${{ steps.toolchain.outputs.toolchain }}/release/libgm_sysinfo.so
       - name: Take Stock
         run: pwd && ls && ls target/${{ steps.toolchain.outputs.toolchain }}/**
+      - name: Rename Outputs
+        run: mv target/${{ steps.toolchain.outputs.toolchain }}/gm_sysinfo.so  ${{ steps.toolchain.outputs.file }}
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v1
+        if: ${{ steps.changelog.outputs.skipped == 'false' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.github_token }}
+        with:
+          tag_name: ${{ steps.changelog.outputs.tag }}
+          files: ${{ steps.toolchain.outputs.file }}
+
   build-windows:
     runs-on: windows-latest
+    name: Build Windows Modules
+    needs: [check-changes]
+    if: ${{ needs.check-changes.outputs.skipped == 'false' }}
     strategy:
       fail-fast: false
       matrix:
@@ -76,3 +120,13 @@ jobs:
           args: --release ${{ steps.toolchain.outputs.features }} --target ${{ steps.toolchain.outputs.toolchain }}
       - name: Take Stock
         run: pwd && ls && ls target/${{ steps.toolchain.outputs.toolchain }}/**
+      - name: Rename Outputs
+        run: mv target/${{ steps.toolchain.outputs.toolchain }}/gm_sysinfo.dll  ${{ steps.toolchain.outputs.file }}
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v1
+        if: ${{ steps.changelog.outputs.skipped == 'false' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.github_token }}
+        with:
+          tag_name: ${{ steps.changelog.outputs.tag }}
+          files: ${{ steps.toolchain.outputs.file }}
