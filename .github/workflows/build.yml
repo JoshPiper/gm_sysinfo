@@ -26,6 +26,6 @@ jobs:
           ARCH: ${{ matrix.architecture }}
           REALM: ${{ matrix.realm }}
       - name: Build
-        run: cargo build --release ${{ steps.toolchain.output.features }} --target ${{ steps.toolchain.output.toolchain }}
+        run: cargo build --release ${{ steps.toolchain.outputs.features }} --target ${{ steps.toolchain.outputs.toolchain }}
       - name: Take Stock
         run: pwd && ls && ls target/**
