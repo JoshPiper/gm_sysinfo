@@ -11,7 +11,8 @@ jobs:
     name: Check Changes
     runs-on: ubuntu-latest
     outputs:
-      skipped:  ${{ steps.changelog.outputs.skipped }}
+      tag: ${{ steps.changelog.outputs.tag }}
+      skipped: ${{ steps.changelog.outputs.skipped }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -81,7 +82,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.github_token }}
         with:
-          tag_name: ${{ steps.changelog.outputs.tag }}
+          tag_name: ${{ needs.check-changes.outputs.tag }}
           files: ${{ steps.toolchain.outputs.file }}
 
   build-windows:
@@ -124,6 +125,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.github_token }}
         with:
-          tag_name: ${{ steps.changelog.outputs.tag }}
+          tag_name: ${{ needs.check-changes.outputs.tag }}
           files: ${{ steps.toolchain.outputs.file }}
 
