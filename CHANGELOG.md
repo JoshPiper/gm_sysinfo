@@ -1,9 +1,14 @@
-# 0.6.0 (2021-12-19)
+# 1.0.0 (2021-12-19)
 
 
-### Features
+### Documentation
 
-* **fix:** pass tag to uploader. ([376e4df](https://github.com/JoshPiper/gm_sysinfo/commit/376e4df8c1c06f75d3dbd3933891d64f3c5761d9))
+* Add better install instructions. ([11ccdf8](https://github.com/JoshPiper/gm_sysinfo/commit/11ccdf8e114954c84a2125b02b6f1f04fa5d37a8))
+
+
+### BREAKING CHANGES
+
+* Initial 1.0.0 Release.
 
 
 
