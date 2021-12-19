@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [win, osx, linux]
+        platform: [win, linux]
         architecture: [32, 64]
         realm: [cl, sv]
     steps:
