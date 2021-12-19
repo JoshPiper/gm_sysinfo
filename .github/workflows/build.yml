@@ -35,7 +35,7 @@ jobs:
           target: ${{ steps.toolchain.outputs.toolchain }}
           override: true
       - name: Install Mingw32
-        if: matrix.platform == "win" and matrix.architecture == 32
+        if: ${{ matrix.platform == 'win' && matrix.architecture == 32 }}
         run: sudo apt-get install -y mingw
       - name: Build
         uses: actions-rs/cargo@v1
