@@ -7,17 +7,14 @@ on:
       - main
 
 jobs:
-  build:
+  build-linux:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-#        platform: [win, linux]
-#        architecture: [32, 64]
-#        realm: [cl, sv]
-        platform: [win]
-        architecture: [32]
-        realm: [cl]
+        platform: [linux]
+        architecture: [32, 64]
+        realm: [cl, sv]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -34,14 +31,47 @@ jobs:
           toolchain: nightly
           target: ${{ steps.toolchain.outputs.toolchain }}
           override: true
-      - name: Install Mingw-64
-        if: ${{ matrix.platform == 'win' && matrix.architecture == 32 }}
-        run: sudo apt-get install -y mingw-w64
       - name: Build
         uses: actions-rs/cargo@v1
         with:
-          use-cross: true
+          use-cross: false
           command: build
           args: --release ${{ steps.toolchain.outputs.features }} --target ${{ steps.toolchain.outputs.toolchain }}
+#      - name: Strip Debug Symbols
+#        run: strip target/${{ steps.toolchain.outputs.toolchain }}/release/
+      - name: Take Stock
+        run: pwd && ls && ls target/**
+  build-windows:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [win]
+        architecture: [32, 64]
+        realm: [cl, sv]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Fetch Toolchain Information
+        run: node build/get-toolchain.js
+        id: toolchain
+        env:
+          PLATFORM: ${{ matrix.platform }}
+          ARCH: ${{ matrix.architecture }}
+          REALM: ${{ matrix.realm }}
+      - name: Setup Toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          target: ${{ steps.toolchain.outputs.toolchain }}
+          override: true
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          use-cross: false
+          command: build
+          args: --release ${{ steps.toolchain.outputs.features }} --target ${{ steps.toolchain.outputs.toolchain }}
+      #      - name: Strip Debug Symbols
+      #        run: strip target/${{ steps.toolchain.outputs.toolchain }}/release/
       - name: Take Stock
         run: pwd && ls && ls target/**
