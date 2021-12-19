@@ -16,7 +16,7 @@ jobs:
 #        architecture: [32, 64]
 #        realm: [cl, sv]
         platform: [win]
-        arcitecture: [32]
+        architecture: [32]
         realm: [cl]
     steps:
       - name: Checkout
