@@ -25,6 +25,12 @@ jobs:
           PLATFORM: ${{ matrix.platform }}
           ARCH: ${{ matrix.architecture }}
           REALM: ${{ matrix.realm }}
+      - name: Setup Toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: ${{ steps.toolchain.outputs.toolchain }}
+          override: true
       - name: Build
         uses: actions-rs/cargo@v1
         with:
