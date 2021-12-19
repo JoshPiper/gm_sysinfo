@@ -161,7 +161,7 @@ unsafe fn gmod13_open(lua: State) -> i32 {
     initialize(&SYSTEM);
 
     // Create _G.sysinfo
-    lua.create_table(0, 2);
+    lua.create_table(0, 8);
     export_lua_function!(get_core_count);
     export_lua_function!(get_memory);
     export_lua_function!(get_swap);
