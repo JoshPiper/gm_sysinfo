@@ -157,6 +157,7 @@ unsafe fn gmod13_open(lua: State) -> i32 {
         override_stdout();
     }
 
+    // System should be the only thing we need to init here, since that takes the longest to load.
     initialize(&SYSTEM);
 
     // Create _G.sysinfo
