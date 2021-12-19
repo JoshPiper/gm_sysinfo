@@ -34,9 +34,9 @@ jobs:
           toolchain: nightly
           target: ${{ steps.toolchain.outputs.toolchain }}
           override: true
-      - name: Install Mingw32
+      - name: Install Mingw-64
         if: ${{ matrix.platform == 'win' && matrix.architecture == 32 }}
-        run: sudo apt-get install -y mingw
+        run: sudo apt-get install -y mingw-w64
       - name: Build
         uses: actions-rs/cargo@v1
         with:
