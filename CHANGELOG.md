@@ -1,9 +1,9 @@
-# 0.5.0 (2021-12-19)
+# 0.6.0 (2021-12-19)
 
 
 ### Features
 
-* **fix:** final fixes. ([48aef03](https://github.com/JoshPiper/gm_sysinfo/commit/48aef034345e674e0bd473aba95690396659940e))
+* **fix:** pass tag to uploader. ([376e4df](https://github.com/JoshPiper/gm_sysinfo/commit/376e4df8c1c06f75d3dbd3933891d64f3c5761d9))
 
 
 
