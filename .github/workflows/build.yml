@@ -35,7 +35,6 @@ jobs:
           name: ${{ steps.changelog.outputs.tag }}
           body: ${{ steps.changelog.outputs.clean_changelog }}
           generate_release_notes: false
-          draft: true
 
   build-linux:
     name: Build Linux Modules
