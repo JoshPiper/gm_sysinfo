@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [lib]
-name = "gmcl_sysinfo_win64"
+name = "gm_sysinfo"
 crate-type = ["cdylib"]
 
 [features]
