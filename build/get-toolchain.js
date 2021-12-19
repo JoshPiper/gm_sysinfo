@@ -12,7 +12,7 @@ const archs = {
 }
 
 const platforms = {
-	win: "pc-windows-mscv",
+	win: "pc-windows-msvc",
 	osx: "apple-darwin",
 	linux: "unknown-linux-gnu"
 }
