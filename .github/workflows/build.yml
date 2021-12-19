@@ -12,9 +12,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [win, linux]
-        architecture: [32, 64]
-        realm: [cl, sv]
+#        platform: [win, linux]
+#        architecture: [32, 64]
+#        realm: [cl, sv]
+        platform: [win]
+        arcitecture: [32]
+        realm: [cl]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
