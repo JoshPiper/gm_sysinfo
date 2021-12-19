@@ -43,7 +43,7 @@ jobs:
 #      - name: Strip Debug Symbols
 #        run: strip target/${{ steps.toolchain.outputs.toolchain }}/release/
       - name: Take Stock
-        run: pwd && ls && ls target/**
+        run: pwd && ls && ls target/${{ steps.toolchain.outputs.toolchain }}/**
   build-windows:
     runs-on: windows-latest
     strategy:
@@ -74,7 +74,5 @@ jobs:
           use-cross: false
           command: build
           args: --release ${{ steps.toolchain.outputs.features }} --target ${{ steps.toolchain.outputs.toolchain }}
-      #      - name: Strip Debug Symbols
-      #        run: strip target/${{ steps.toolchain.outputs.toolchain }}/release/
       - name: Take Stock
-        run: pwd && ls && ls target/**
+        run: pwd && ls && ls target/${{ steps.toolchain.outputs.toolchain }}/**
