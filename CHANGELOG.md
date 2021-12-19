@@ -1,9 +1,9 @@
-# 0.3.0 (2021-12-19)
+# 0.4.0 (2021-12-19)
 
 
 ### Features
 
-* **fix:** rename from libgm_sysinfo, not gm_sysinfo. ([c42cb9a](https://github.com/JoshPiper/gm_sysinfo/commit/c42cb9a625032deba7e2663318f0c688059373f7))
+* **fix:** there's an intermediate folder. ([c783eb1](https://github.com/JoshPiper/gm_sysinfo/commit/c783eb1ac5b9656839f17e8c7ef8172c03da5d25))
 
 
 
