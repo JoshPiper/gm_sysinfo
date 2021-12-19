@@ -77,7 +77,7 @@ jobs:
       - name: Take Stock
         run: pwd && ls && ls target/${{ steps.toolchain.outputs.toolchain }}/**
       - name: Rename Outputs
-        run: mv target/${{ steps.toolchain.outputs.toolchain }}/libgm_sysinfo.so  ${{ steps.toolchain.outputs.file }}
+        run: mv target/${{ steps.toolchain.outputs.toolchain }}/release/libgm_sysinfo.so  ${{ steps.toolchain.outputs.file }}
       - name: Upload Release Asset
         uses: softprops/action-gh-release@v1
         if: ${{ steps.changelog.outputs.skipped == 'false' }}
@@ -121,9 +121,9 @@ jobs:
           command: build
           args: --release ${{ steps.toolchain.outputs.features }} --target ${{ steps.toolchain.outputs.toolchain }}
       - name: Take Stock
-        run: pwd && ls && ls target/${{ steps.toolchain.outputs.toolchain }}/**
+        run: ls target/${{ steps.toolchain.outputs.toolchain }}/release/
       - name: Rename Outputs
-        run: mv target/${{ steps.toolchain.outputs.toolchain }}/libgm_sysinfo.dll  ${{ steps.toolchain.outputs.file }}
+        run: mv target/${{ steps.toolchain.outputs.toolchain }}/release/libgm_sysinfo.dll  ${{ steps.toolchain.outputs.file }}
       - name: Upload Release Asset
         uses: softprops/action-gh-release@v1
         if: ${{ steps.changelog.outputs.skipped == 'false' }}
