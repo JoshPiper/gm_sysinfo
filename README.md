@@ -21,6 +21,32 @@ local hostname = sysinfo.get_host_name() -- "game_server.example.com"
 local cores = sysinfo.get_core_count() -- 8
 ```
 
+## API Reference
+
+### `sysinfo.get_core_count(): int`
+Returns the number of physical cores (not threads) on a system.
+  
+### `sysinfo.get_memory(): int`
+Returns amount of system memory in KB.
+  
+### `sysinfo.get_swap(): int`
+Returns amount of swap space in KB.
+  
+### `sysinfo.get_system_name(): string`
+Returns the system name.
+  
+### `sysinfo.get_host_name(): string`
+Returns the system DNS name.
+  
+### `sysinfo.get_system_long_version(): string`
+Returns the system version long name.
+  
+### `sysinfo.get_system_version(): string`
+Returns the system version name.
+  
+### `sysinfo.get_kernel_version(): string`
+Returns the kernel version name.
+  
 ## Credits
 
 Massive thanks to [Billy](https://github.com/WilliamVenner) for both [gmod-rs](https://github.com/WilliamVenner/gmod-rs) and his infinate patience in dealing with both me and my issues. Without him, this project wouldn't have happened.
