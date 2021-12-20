@@ -57,89 +57,81 @@ unsafe fn error(lua: State, err: String){
 
 #[lua_function]
 unsafe fn get_core_count(lua: State) -> i32 {
-    let cores: usize = CORES.clone();
-    if cores == 0 {
+    if *CORES == 0 {
         error(lua, err!("read the core count"))
     }
 
-    lua.push_integer(cores as LuaInt);
+    lua.push_integer(*CORES as LuaInt);
     1
 }
 
 #[lua_function]
 unsafe fn get_memory(lua: State) -> i32 {
-    let memory: u64 = TOTAL_MEMORY.clone();
-    if memory == 0 {
+    if *TOTAL_MEMORY == 0 {
         error(lua, err!("read the system memory"))
     }
 
-    lua.push_integer(memory as LuaInt);
+    lua.push_integer(*TOTAL_MEMORY as LuaInt);
     1
 }
 
 #[lua_function]
 unsafe fn get_swap(lua: State) -> i32 {
-    let memory: u64 = TOTAL_SWAP.clone();
-    if memory == 0 {
+    if *TOTAL_SWAP == 0 {
         error(lua, err!("read the system swap space"))
     }
 
-    lua.push_integer(memory as LuaInt);
+    lua.push_integer(*TOTAL_SWAP as LuaInt);
     1
 }
 
 #[lua_function]
 unsafe fn get_system_name(lua: State) -> i32 {
-    let sys_name: &str = SYS_NAME.borrow();
-    if sys_name == "" {
+    if SYS_NAME.is_empty() {
         error(lua, err!("read the system name"))
     }
 
-    lua.push_string(sys_name);
+    lua.push_string(&*SYS_NAME);
     1
 }
 
 #[lua_function]
 unsafe fn get_system_long_version(lua: State) -> i32 {
-    let sys_ver: &str = OS_LONG_VERSION.borrow();
-    if sys_ver == "" {
+    if OS_LONG_VERSION.is_empty() {
         error(lua, err!("read the system version"))
     }
 
-    lua.push_string(sys_ver);
+    lua.push_string(&*OS_LONG_VERSION);
     1
 }
 
 #[lua_function]
 unsafe fn get_system_version(lua: State) -> i32 {
-    let sys_ver: &str = OS_VERSION.borrow();
-    if sys_ver == "" {
+    if OS_VERSION.is_empty() {
         error(lua, err!("read the system version"))
     }
 
-    lua.push_string(sys_ver);
+    lua.push_string(&*OS_VERSION);
     1
 }
 
 #[lua_function]
 unsafe fn get_kernel_version(lua: State) -> i32 {
-    let sys_ver: &str = KERNEL_VERSION.borrow();
-    if sys_ver == "" {
+    if KERNEL_VERSION.is_empty() {
         error(lua, err!("read the kernel version"))
     }
 
-    lua.push_string(sys_ver);
+    lua.push_string(&*KERNEL_VERSION);
     1
 }
 
 #[lua_function]
 unsafe fn get_host_name(lua: State) -> i32 {
-    let host_name: &str = HOST_NAME.borrow();
-    if host_name == "" {
+    if HOST_NAME.is_empty() {
         error(lua, err!("read the system version"))
     }
 
-    lua.push_string(host_name);
+    lua.push_string(&*HOST_NAME);
     1
 }
 
