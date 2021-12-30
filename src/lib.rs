@@ -21,32 +21,14 @@ macro_rules! err {
 
 lazy_static! {
     static ref SYSTEM: System = System::new_all();
-    static ref CORES: usize = match SYSTEM.physical_core_count(){
-        Some(cores) => cores,
-        None => 0
-    };
+    static ref CORES: usize = SYSTEM.physical_core_count().unwrap_or_default();
     static ref TOTAL_MEMORY: u64 = SYSTEM.total_memory();
     static ref TOTAL_SWAP: u64 = SYSTEM.total_swap();
-    static ref SYS_NAME: String = match SYSTEM.name(){
-        Some(name) => name,
-        None => "".to_string()
-    };
-    static ref OS_LONG_VERSION: String = match SYSTEM.long_os_version(){
-        Some(name) => name,
-        None => "".to_string()
-    };
-    static ref OS_VERSION: String = match SYSTEM.os_version(){
-        Some(name) => name,
-        None => "".to_string()
-    };
-    static ref KERNEL_VERSION: String = match SYSTEM.kernel_version(){
-        Some(name) => name,
-        None => "".to_string()
-    };
-    static ref HOST_NAME: String = match SYSTEM.host_name(){
-        Some(name) => name,
-        None => "".to_string()
-    };
+    static ref SYS_NAME: String = SYSTEM.name().unwrap_or_default();
+    static ref OS_LONG_VERSION: String = SYSTEM.long_os_version().unwrap_or_default();
+    static ref OS_VERSION: String = SYSTEM.os_version().unwrap_or_default();
+    static ref KERNEL_VERSION: String = SYSTEM.kernel_version().unwrap_or_default();
+    static ref HOST_NAME: String = SYSTEM.host_name().unwrap_or_default();
 }
 
 unsafe fn error(lua: State, err: String){
