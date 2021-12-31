@@ -53,6 +53,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+        with:
+          ref: ${{ needs.check-changes.outputs.tag }}
       - name: Fetch Toolchain Information
         run: node build/get-toolchain.js
         id: toolchain
@@ -101,6 +103,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+        with:
+          ref: ${{ needs.check-changes.outputs.tag }}
       - name: Fetch Toolchain Information
         run: node build/get-toolchain.js
         id: toolchain
