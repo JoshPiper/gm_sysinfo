@@ -1,7 +1,5 @@
 #![feature(c_unwind)]
 
-use std::borrow::Borrow;
-
 #[cfg(feature = "gmcl")]
 use gmod::gmcl::override_stdout;
 use gmod::lua::{State, LuaInt};
