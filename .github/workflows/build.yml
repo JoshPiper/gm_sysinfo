@@ -27,7 +27,7 @@ jobs:
           version-file: "./Cargo.toml"
           version-path: "package.version"
           fallback-version: "0.1.0"
-          pre-commit: ".github/workflows/build.yml""
+          pre-commit: ".github/workflows/build.yml"
       - name: Create Release
         uses: softprops/action-gh-release@v1
         if: ${{ steps.changelog.outputs.skipped == 'false' }}
