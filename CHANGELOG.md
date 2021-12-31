@@ -1,3 +1,12 @@
+## [1.0.4](https://github.com/JoshPiper/gm_sysinfo/compare/v1.0.3...v1.0.4) (2021-12-31)
+
+
+### Bug Fixes
+
+* **build:** Automatically bump the cargo lock file. ([d7de695](https://github.com/JoshPiper/gm_sysinfo/commit/d7de695f6fc68db643d398db9dc10d59f0e76068))
+
+
+
 ## [1.0.3](https://github.com/JoshPiper/gm_sysinfo/compare/v1.0.2...v1.0.3) (2021-12-31)
 
 
