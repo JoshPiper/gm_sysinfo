@@ -11,7 +11,7 @@ crate-type = ["cdylib"]
 gmcl = []
 
 [dependencies]
-gmod = {version = "10.2.1", features = ["gmcl"], default-features = false}
+gmod = {version = "10.2.2", features = ["gmcl"], default-features = false}
 sysinfo = "*"
 gethostname = "*"
 lazy_static = "*"
