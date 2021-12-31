@@ -6,5 +6,5 @@ exports.preCommit = ({tag, version}) => {
 	let name = GITHUB_REPOSITORY.split("/")[1]
 
 	let res = exec("cargo", ["update", "-p", name])
-	console.log(res)
+	console.log(res.stdout.toString())
 }
