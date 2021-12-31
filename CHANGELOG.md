@@ -1,3 +1,12 @@
+## [1.0.2](https://github.com/JoshPiper/gm_sysinfo/compare/v1.0.1...v1.0.2) (2021-12-31)
+
+
+### Bug Fixes
+
+* Allow any stringable to be passed to error. ([4f7921f](https://github.com/JoshPiper/gm_sysinfo/commit/4f7921fecf7fee7b617352cbd8256acc196539da))
+
+
+
 ## [1.0.1](https://github.com/JoshPiper/gm_sysinfo/compare/v1.0.0...v1.0.1) (2021-12-31)
 
 
