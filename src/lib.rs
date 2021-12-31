@@ -29,8 +29,8 @@ lazy_static! {
     static ref HOST_NAME: String = SYSTEM.host_name().unwrap_or_default();
 }
 
-unsafe fn error(lua: State, err: String){
-   lua.error(err.as_str());
+unsafe fn error<S: AsRef<str>>(lua: State, err: S){
+   lua.error(err);
 }
 
 #[lua_function]
