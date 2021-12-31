@@ -1,3 +1,12 @@
+## [1.0.3](https://github.com/JoshPiper/gm_sysinfo/compare/v1.0.2...v1.0.3) (2021-12-31)
+
+
+### Bug Fixes
+
+* **deps:** Update minimum version of gmod-rs, adds fix for client console crashing. ([083bfdb](https://github.com/JoshPiper/gm_sysinfo/commit/083bfdbafc1e36bc023325d4d510c8264da9a172))
+
+
+
 ## [1.0.2](https://github.com/JoshPiper/gm_sysinfo/compare/v1.0.1...v1.0.2) (2021-12-31)
 
 
