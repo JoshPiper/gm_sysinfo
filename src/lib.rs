@@ -32,9 +32,7 @@ lazy_static! {
 }
 
 unsafe fn error(lua: State, err: String){
-    lua.get_global(lua_string!("error"));
-    lua.push_string(err.borrow());
-    lua.call(1, 0);
+   lua.error(err.as_str());
 }
 
 #[lua_function]
