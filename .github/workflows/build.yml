@@ -73,7 +73,7 @@ jobs:
         with:
           use-cross: false
           command: build
-          args: --release ${{ steps.toolchain.outputs.features }} --target ${{ steps.toolchain.outputs.toolchain }}
+          args: --release ${{ steps.toolchain.outputs.features }} --target ${{ steps.toolchain.outputs.toolchain }} --locked
       - name: Strip Debug Symbols
         run: strip target/${{ steps.toolchain.outputs.toolchain }}/release/libgm_sysinfo.so
       - name: Rename Outputs
@@ -118,7 +118,7 @@ jobs:
         with:
           use-cross: false
           command: build
-          args: --release ${{ steps.toolchain.outputs.features }} --target ${{ steps.toolchain.outputs.toolchain }}
+          args: --release ${{ steps.toolchain.outputs.features }} --target ${{ steps.toolchain.outputs.toolchain }} --locked
       - name: Rename Outputs
         run: mv target/${{ steps.toolchain.outputs.toolchain }}/release/gm_sysinfo.dll  ${{ steps.toolchain.outputs.file }}
       - name: Upload Release Asset
