@@ -144,7 +144,7 @@ return {
 
                 for _, key in ipairs( { "one", "five", "fifteen" } ) do
                     expect( avg[key] ).to.beA( "number" )
-                    expect( avg[key] ).to.beGreaterThan( -1 )
+                    expect( avg[key] ).toNot.beLessThan( 0 )
                 end
             end
         },
