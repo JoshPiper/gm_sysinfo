@@ -109,6 +109,7 @@ jobs:
       - name: Assemble release assets
         run: |
           mv bom.json "assets/gm_sysinfo-${{ steps.tag.outputs.tag }}.cdx.json"
+          cp sysinfo.lua assets/sysinfo.lua
           (cd assets && sha256sum -- * > SHA256SUMS)
 
       # Signed SLSA build provenance, queryable later with:
