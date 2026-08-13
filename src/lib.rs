@@ -124,10 +124,10 @@ unsafe fn get_memory(lua: State) -> i32 {
 
 #[lua_function]
 unsafe fn get_swap(lua: State) -> i32 {
-    if INFO.total_swap == 0 {
-        error(lua, err!("read the system swap space"));
-    }
-
+    // Unlike memory, 0 is a legitimate value here -- plenty of real hosts
+    // (containers, VPSes) run with no swap configured at all. sysinfo can't
+    // distinguish "no swap" from "failed to read" either way, so treating 0
+    // as an error would misreport a common, valid configuration.
     lua.push_number(INFO.total_swap as f64);
     1
 }
