@@ -26,11 +26,15 @@ local cores = sysinfo.get_core_count() -- 8
 ### `sysinfo.get_core_count(): int`
 Returns the number of physical cores (not threads) on a system.
   
-### `sysinfo.get_memory(): int`
-Returns amount of system memory in KB.
-  
-### `sysinfo.get_swap(): int`
-Returns amount of swap space in KB.
+### `sysinfo.get_memory(): number`
+Returns total system memory, in bytes.
+
+```lua
+local mib = math.floor(sysinfo.get_memory() / 1024 / 1024)
+```
+
+### `sysinfo.get_swap(): number`
+Returns total swap space, in bytes.
   
 ### `sysinfo.get_system_name(): string`
 Returns the system name.

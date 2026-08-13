@@ -1,123 +1,125 @@
-#![feature(c_unwind)]
+use std::sync::LazyLock;
 
-#[cfg(feature = "gmcl")]
-use gmod::gmcl::override_stdout;
-use gmod::lua::{State, LuaInt};
-use gmod::lua_function;
-use sysinfo::{System, SystemExt};
-use lazy_static::initialize;
-
-#[macro_use] extern crate lazy_static;
-#[macro_use] extern crate gmod;
+use gmod::lua::{LuaString, State};
+use gmod::{gmod13_close, gmod13_open, lua_function, lua_string};
+use sysinfo::{MemoryRefreshKind, RefreshKind, System};
 
 static MOD_NAME: &str = "sysinfo";
 macro_rules! err {
-    () => {format!("{} had an error.", MOD_NAME)};
-    ($arg:literal) => {format!("{} was unable to {}", MOD_NAME, $arg)};
-    ($arg:literal, $err:literal) => {format!("{} was unable to {}: {:?}", MOD_NAME, $arg, $err)};
+    ($arg:literal) => {
+        format!("{} was unable to {}", MOD_NAME, $arg)
+    };
 }
 
-lazy_static! {
-    static ref SYSTEM: System = System::new_all();
-    static ref CORES: usize = SYSTEM.physical_core_count().unwrap_or_default();
-    static ref TOTAL_MEMORY: u64 = SYSTEM.total_memory();
-    static ref TOTAL_SWAP: u64 = SYSTEM.total_swap();
-    static ref SYS_NAME: String = SYSTEM.name().unwrap_or_default();
-    static ref OS_LONG_VERSION: String = SYSTEM.long_os_version().unwrap_or_default();
-    static ref OS_VERSION: String = SYSTEM.os_version().unwrap_or_default();
-    static ref KERNEL_VERSION: String = SYSTEM.kernel_version().unwrap_or_default();
-    static ref HOST_NAME: String = SYSTEM.host_name().unwrap_or_default();
+/// System facts snapshotted once, on module load. Sizes are in bytes.
+struct Snapshot {
+    cores: usize,
+    total_memory: u64,
+    total_swap: u64,
+    name: String,
+    long_os_version: String,
+    os_version: String,
+    kernel_version: String,
+    host_name: String,
 }
 
-unsafe fn error<S: AsRef<str>>(lua: State, err: S){
-   lua.error(err);
+static INFO: LazyLock<Snapshot> = LazyLock::new(|| {
+    let sys = System::new_with_specifics(
+        RefreshKind::nothing().with_memory(MemoryRefreshKind::everything()),
+    );
+    Snapshot {
+        cores: System::physical_core_count().unwrap_or_default(),
+        total_memory: sys.total_memory(),
+        total_swap: sys.total_swap(),
+        name: System::name().unwrap_or_default(),
+        long_os_version: System::long_os_version().unwrap_or_default(),
+        os_version: System::os_version().unwrap_or_default(),
+        kernel_version: System::kernel_version().unwrap_or_default(),
+        host_name: System::host_name().unwrap_or_default(),
+    }
+});
+
+unsafe fn error<S: AsRef<str>>(lua: State, err: S) -> ! {
+    lua.error(err)
 }
 
 #[lua_function]
 unsafe fn get_core_count(lua: State) -> i32 {
-    let cores: usize = *CORES;
-    if cores == 0 {
-        error(lua, err!("read the core count"))
+    if INFO.cores == 0 {
+        error(lua, err!("read the core count"));
     }
 
-    lua.push_integer(cores as LuaInt);
+    lua.push_number(INFO.cores as f64);
     1
 }
 
 #[lua_function]
 unsafe fn get_memory(lua: State) -> i32 {
-    let size: u64 = *TOTAL_MEMORY;
-    if size == 0 {
-        error(lua, err!("read the system memory"))
+    if INFO.total_memory == 0 {
+        error(lua, err!("read the system memory"));
     }
 
-    lua.push_integer(size as LuaInt);
+    lua.push_number(INFO.total_memory as f64);
     1
 }
 
 #[lua_function]
 unsafe fn get_swap(lua: State) -> i32 {
-    let size: u64 = *TOTAL_SWAP;
-    if size == 0 {
-        error(lua, err!("read the system swap space"))
+    if INFO.total_swap == 0 {
+        error(lua, err!("read the system swap space"));
     }
 
-    lua.push_integer(size as LuaInt);
+    lua.push_number(INFO.total_swap as f64);
     1
 }
 
 #[lua_function]
 unsafe fn get_system_name(lua: State) -> i32 {
-    let sys_name: &str = SYS_NAME.as_str();
-    if sys_name.is_empty() {
-        error(lua, err!("read the system name"))
+    if INFO.name.is_empty() {
+        error(lua, err!("read the system name"));
     }
 
-    lua.push_string(sys_name);
+    lua.push_string(&INFO.name);
     1
 }
 
 #[lua_function]
 unsafe fn get_system_long_version(lua: State) -> i32 {
-    let version: &str = OS_LONG_VERSION.as_str();
-    if version.is_empty() {
-        error(lua, err!("read the system version"))
+    if INFO.long_os_version.is_empty() {
+        error(lua, err!("read the system version"));
     }
 
-    lua.push_string(version);
+    lua.push_string(&INFO.long_os_version);
     1
 }
 
 #[lua_function]
 unsafe fn get_system_version(lua: State) -> i32 {
-    let version: &str = OS_VERSION.as_str();
-    if version.is_empty() {
-        error(lua, err!("read the system version"))
+    if INFO.os_version.is_empty() {
+        error(lua, err!("read the system version"));
     }
 
-    lua.push_string(version);
+    lua.push_string(&INFO.os_version);
     1
 }
 
 #[lua_function]
 unsafe fn get_kernel_version(lua: State) -> i32 {
-    let version: &str = KERNEL_VERSION.as_str();
-    if version.is_empty() {
-        error(lua, err!("read the kernel version"))
+    if INFO.kernel_version.is_empty() {
+        error(lua, err!("read the kernel version"));
     }
 
-    lua.push_string(version);
+    lua.push_string(&INFO.kernel_version);
     1
 }
 
 #[lua_function]
 unsafe fn get_host_name(lua: State) -> i32 {
-    let host_name: &str = HOST_NAME.as_str();
-    if host_name.is_empty() {
-        error(lua, err!("read the system version"))
+    if INFO.host_name.is_empty() {
+        error(lua, err!("read the host name"));
     }
 
-    lua.push_string(host_name);
+    lua.push_string(&INFO.host_name);
     1
 }
 
@@ -127,16 +129,15 @@ unsafe fn gmod13_open(lua: State) -> i32 {
         ($name:ident) => {
             // _G.sysinfo.$name
             lua.push_function($name);
-            lua.set_field(-2, concat!(stringify!($name), "\0").as_ptr() as *const i8);
-        }
+            lua.set_field(-2, concat!(stringify!($name), "\0").as_ptr() as LuaString);
+        };
     }
 
-    #[cfg(feature = "gmcl")]{
-        override_stdout();
-    }
+    #[cfg(feature = "gmcl")]
+    gmod::gmcl::override_stdout();
 
-    // System should be the only thing we need to init here, since that takes the longest to load.
-    initialize(&SYSTEM);
+    // Snapshot the system facts up front, rather than lazily on first call.
+    LazyLock::force(&INFO);
 
     // Create _G.sysinfo
     lua.create_table(0, 8);
@@ -155,6 +156,9 @@ unsafe fn gmod13_open(lua: State) -> i32 {
 
 #[gmod13_close]
 fn gmod13_close(_lua: State) -> i32 {
-    println!("Goodbye from binary module!");
+    // override_stdout must be undone on unload, or the game crashes.
+    #[cfg(feature = "gmcl")]
+    gmod::gmcl::restore_stdout();
+
     0
 }
