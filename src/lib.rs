@@ -55,10 +55,10 @@ unsafe fn error<S: AsRef<str>>(lua: State, err: S) -> ! {
     lua.error(err)
 }
 
-/// Values that can change while the server runs (memory pressure, CPU load),
-/// unlike `Snapshot`'s facts. Refreshed on demand and throttled per kind --
-/// sysinfo recommends not refreshing CPU data faster than
-/// `MINIMUM_CPU_UPDATE_INTERVAL`, and memory doesn't need polling any harder
+/// Refreshed on demand rather than snapshotted once, and throttled per kind
+/// -- a single shared timestamp would let one kind's refresh silently starve
+/// the other. sysinfo recommends not refreshing CPU data faster than
+/// `MINIMUM_CPU_UPDATE_INTERVAL`; memory doesn't need polling any harder
 /// than that either.
 struct Cache {
     system: System,
