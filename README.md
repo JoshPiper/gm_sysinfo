@@ -1,17 +1,37 @@
 # gm_sysinfo
 
+[![CI](https://github.com/JoshPiper/gm_sysinfo/actions/workflows/ci.yml/badge.svg)](https://github.com/JoshPiper/gm_sysinfo/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/JoshPiper/gm_sysinfo)](https://github.com/JoshPiper/gm_sysinfo/releases/latest)
+[![License: MIT](https://img.shields.io/github/license/JoshPiper/gm_sysinfo)](LICENSE)
+
 Fetching System Information in Rust to Lua.
 
 ## Installation
 
-Download a copy of the module from the releases (or compile from source)
-Move the downloaded file to `<Garry's Mod Installation>/lua/bin/gm<state>_sysinfo_<platform>.dll`
+Download a copy of the module from the [releases](https://github.com/JoshPiper/gm_sysinfo/releases/latest) page (or [compile from source](#building-from-source)), and move it to:
 
-State can be either cl or sv, for the client and server, respectively.
-Platform can be one of win32, win64, linux, linux64 or osx64 for 32 bit (main branch) Windows, 64 bit (x64 branch) Windows, 32/64 bit Linux, and 64 bit (x64 branch) macOS builds respectively.
+```
+<Garry's Mod Installation>/garrysmod/lua/bin/<filename>
+```
 
-On macOS, downloaded modules carry the quarantine attribute and may be blocked from loading; clear it with `xattr -d com.apple.quarantine <file>`.
+`<filename>` follows the pattern `gm<realm>_sysinfo_<platform>.dll`.
 
+| Realm | Platform | Filename |
+|---|---|---|
+| Server | Windows, 32-bit (`main` branch) | `gmsv_sysinfo_win32.dll` |
+| Server | Windows, 64-bit (`x86-64` branch) | `gmsv_sysinfo_win64.dll` |
+| Server | Linux, 32-bit (`main` branch) | `gmsv_sysinfo_linux.dll` |
+| Server | Linux, 64-bit (`x86-64` branch) | `gmsv_sysinfo_linux64.dll` |
+| Server | macOS, 64-bit (`x86-64` branch) | `gmsv_sysinfo_osx64.dll` |
+| Client | Windows, 32-bit | `gmcl_sysinfo_win32.dll` |
+| Client | Windows, 64-bit | `gmcl_sysinfo_win64.dll` |
+| Client | Linux, 32-bit | `gmcl_sysinfo_linux.dll` |
+| Client | Linux, 64-bit | `gmcl_sysinfo_linux64.dll` |
+| Client | macOS, 64-bit | `gmcl_sysinfo_osx64.dll` |
+
+Server realm exposes the module to server-side Lua; client realm exposes it to the client console/menu. Install whichever (or both) your use case needs.
+
+On macOS, downloaded files carry the quarantine attribute and may be blocked from loading; clear it with `xattr -d com.apple.quarantine <file>`.
 
 ## Usage
 
@@ -22,6 +42,20 @@ require("sysinfo")
 local hostname = sysinfo.get_host_name() -- "game_server.example.com"
 local cores = sysinfo.get_core_count() -- 8
 ```
+
+An [LuaLS](https://github.com/LuaLS/lua-language-server) type definition file is available - see [Editor support](#editor-support) for autocomplete and inline docs while writing Lua against this module.
+
+## Semantics
+
+- Every value except `get_version()` and `get_build_info()` is **snapshotted once**, when the module loads, not re-read on each call — cheap to call repeatedly, but won't reflect a mid-session change (e.g. hot-added swap).
+- Every getter **raises a Lua error** (rather than returning `nil` or `0`) if its value is unavailable. If a value might legitimately be absent on your target platform — `get_swap()` on a swapless container is the common case — wrap the call in `pcall`:
+
+  ```lua
+  local ok, swap = pcall(sysinfo.get_swap)
+  if ok then
+      print("Swap: " .. swap .. " bytes")
+  end
+  ```
 
 ## API Reference
 
@@ -57,7 +91,7 @@ Returns the kernel version name.
 Returns the module's own version, e.g. `"2.0.0"`.
 
 ### `sysinfo.get_build_info(): table`
-Returns build provenance for the running binary:
+Returns build information for the running binary:
 
 ```lua
 {
@@ -75,7 +109,32 @@ Returns build provenance for the running binary:
 }
 ```
 
-`commit`, `commit_short`, and `dirty` are `nil` if the binary wasn't built from a git checkout. `repository` and `run_url` are empty strings outside of GitHub Actions. If `official` is `false`, or `run_url` doesn't resolve to a real workflow run, treat the binary as unverified — it wasn't built by this project's release pipeline.
+`commit`, `commit_short`, and `dirty` are `nil` if the binary wasn't built from a git checkout. `repository` and `run_url` are empty strings outside of GitHub Actions. If `official` is `false`, or `run_url` doesn't resolve to a real workflow run, treat the binary as unverified; it wasn't built by this project's release pipeline.
+
+## Editor support
+
+A [LuaLS](https://github.com/LuaLS/lua-language-server) type definition file, [`sysinfo.lua`](sysinfo.lua), ships in this repository and as a release asset. It's declarations only (`---@meta`) — never `require()` it in-game. Point your editor at it instead, e.g. in `.luarc.json`:
+
+```json
+{
+    "workspace.library": ["path/to/sysinfo.lua"]
+}
+```
+
+## Building from source
+
+Requires the Rust nightly toolchain pinned in [`rust-toolchain.toml`](rust-toolchain.toml), which `rustup` will automatically install on first build.
+
+```bash
+git clone https://github.com/JoshPiper/gm_sysinfo
+cd gm_sysinfo
+cargo build --release                    # server realm -> target/release/gm_sysinfo.{dll,so,dylib}
+cargo build --release --features gmcl    # client realm
+```
+
+Cross-compiling to another target needs that target installed (`rustup target add <triple>`) and, for 32-bit Linux specifically, a multilib GCC (`gcc-multilib` on Debian/Ubuntu).
+See [`.github/workflows/build.yml`](.github/workflows/build.yml) for the exact target/feature matrix CI builds.
+There are some reported pitfalls in cross compiling GMod binaries, so take care during the process.
 
 ## Verifying a release
 
@@ -86,8 +145,8 @@ gh attestation verify gmsv_sysinfo_linux64.dll -R JoshPiper/gm_sysinfo
 ```
 
 Each release also ships:
-- **`SHA256SUMS`** — checksums for every asset in the release.
-- **`gm_sysinfo-<version>.cdx.json`** — a [CycloneDX](https://cyclonedx.org/) software bill of materials for the dependency tree at that version.
+- **`SHA256SUMS`** - checksums for every asset in the release.
+- **`gm_sysinfo-<version>.cdx.json`** - a [CycloneDX](https://cyclonedx.org/) software bill of materials for the dependency tree at that version.
 
 Additionally, every binary is built with [`cargo-auditable`](https://github.com/rust-secure-code/cargo-auditable): the exact dependency versions that went into it are embedded in the file itself, so it can be scanned for known vulnerabilities on its own, without needing the SBOM asset or the source repository:
 
@@ -95,6 +154,14 @@ Additionally, every binary is built with [`cargo-auditable`](https://github.com/
 cargo install cargo-audit --features=binary-scanning
 cargo audit bin gmsv_sysinfo_linux64.dll
 ```
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Security
+
+See [SECURITY.md](SECURITY.md) for how to report a vulnerability.
 
 ## Credits
 
