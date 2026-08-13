@@ -33,12 +33,17 @@ struct Snapshot {
     os_version: String,
     kernel_version: String,
     host_name: String,
+    cpu_name: String,
+    cpu_brand: String,
 }
 
 static INFO: LazyLock<Snapshot> = LazyLock::new(|| {
     let sys = System::new_with_specifics(
-        RefreshKind::nothing().with_memory(MemoryRefreshKind::everything()),
+        RefreshKind::nothing()
+            .with_memory(MemoryRefreshKind::everything())
+            .with_cpu(CpuRefreshKind::everything()),
     );
+    let cpu = sys.cpus().first();
     Snapshot {
         cores: System::physical_core_count().unwrap_or_default(),
         total_memory: sys.total_memory(),
@@ -48,6 +53,8 @@ static INFO: LazyLock<Snapshot> = LazyLock::new(|| {
         os_version: System::os_version().unwrap_or_default(),
         kernel_version: System::kernel_version().unwrap_or_default(),
         host_name: System::host_name().unwrap_or_default(),
+        cpu_name: cpu.map(|c| c.name().to_owned()).unwrap_or_default(),
+        cpu_brand: cpu.map(|c| c.brand().to_owned()).unwrap_or_default(),
     }
 });
 
@@ -180,6 +187,26 @@ unsafe fn get_cpu_arch(lua: State) -> i32 {
     // Always populated: sysinfo falls back to the build's target arch if the
     // OS query fails.
     lua.push_string(&System::cpu_arch());
+    1
+}
+
+#[lua_function]
+unsafe fn get_cpu_name(lua: State) -> i32 {
+    if INFO.cpu_name.is_empty() {
+        error(lua, err!("read the CPU name"));
+    }
+
+    lua.push_string(&INFO.cpu_name);
+    1
+}
+
+#[lua_function]
+unsafe fn get_cpu_brand(lua: State) -> i32 {
+    if INFO.cpu_brand.is_empty() {
+        error(lua, err!("read the CPU brand"));
+    }
+
+    lua.push_string(&INFO.cpu_brand);
     1
 }
 
@@ -334,7 +361,7 @@ unsafe fn gmod13_open(lua: State) -> i32 {
     LazyLock::force(&INFO);
 
     // Create _G.sysinfo
-    lua.create_table(0, 22);
+    lua.create_table(0, 24);
     export_lua_function!(get_core_count);
     export_lua_function!(get_memory);
     export_lua_function!(get_swap);
@@ -347,6 +374,8 @@ unsafe fn gmod13_open(lua: State) -> i32 {
     export_lua_function!(get_boot_time);
     export_lua_function!(get_cpu_usage);
     export_lua_function!(get_cpu_arch);
+    export_lua_function!(get_cpu_name);
+    export_lua_function!(get_cpu_brand);
     export_lua_function!(get_distro_id);
     export_lua_function!(get_distro_id_like);
     export_lua_function!(get_load_average);

@@ -103,6 +103,12 @@ local mib = math.floor(sysinfo.get_memory() / 1024 / 1024)
 ### `sysinfo.get_cpu_arch(): string`
 **Static.** Returns the CPU architecture (e.g. `"x86_64"`). Never raises.
 
+### `sysinfo.get_cpu_name(): string`
+**Static.** Returns the first CPU's identifier as reported by the OS (e.g. `"cpu0"` on Linux). Raises if it couldn't be read.
+
+### `sysinfo.get_cpu_brand(): string`
+**Static.** Returns the first CPU's brand/model string (e.g. `"Intel(R) Core(TM) i7-9700K CPU @ 3.60GHz"`). Raises if it couldn't be read.
+
 ### `sysinfo.get_distro_id(): string`
 **Static.** Despite the name, not Linux-specific: on Linux it's the distribution id (e.g. `"ubuntu"`); elsewhere it falls back to a normalized platform name (`"windows"`, `"macos"`). Never raises.
 

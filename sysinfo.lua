@@ -72,6 +72,16 @@ function sysinfo.get_cpu_usage() end
 --- @return string
 function sysinfo.get_cpu_arch() end
 
+--- Returns the first CPU's identifier as reported by the OS (e.g. "cpu0" on
+--- Linux). Raises if it couldn't be read.
+--- @return string
+function sysinfo.get_cpu_name() end
+
+--- Returns the first CPU's brand/model string, e.g.
+--- "Intel(R) Core(TM) i7-9700K CPU @ 3.60GHz". Raises if it couldn't be read.
+--- @return string
+function sysinfo.get_cpu_brand() end
+
 --- Despite the name, not Linux-specific: on Linux this is the distribution
 --- id (e.g. "ubuntu"); elsewhere it falls back to a normalized platform name
 --- ("windows", "macos"). Never raises.

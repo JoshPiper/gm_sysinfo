@@ -115,6 +115,8 @@ return {
                     "get_system_long_version",
                     "get_kernel_version",
                     "get_host_name",
+                    "get_cpu_name",
+                    "get_cpu_brand",
                 }
 
                 for _, name in ipairs( getters ) do
