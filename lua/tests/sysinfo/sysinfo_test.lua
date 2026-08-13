@@ -74,6 +74,20 @@ return {
             end
         },
         {
+            name = "Reports uptime and boot time consistently, never raising",
+            func = function()
+                local uptime = sysinfo.get_uptime()
+                local boot_time = sysinfo.get_boot_time()
+
+                expect( uptime ).to.beA( "number" )
+                expect( boot_time ).to.beA( "number" )
+                expect( uptime ).to.beGreaterThan( -1 )
+
+                -- CI runners don't predate the epoch.
+                expect( boot_time ).to.beGreaterThan( 0 )
+            end
+        },
+        {
             name = "Identity getters return a non-empty string, or raise when unavailable",
             func = function()
                 -- Minimal containers may lack e.g. /etc/os-release, in which

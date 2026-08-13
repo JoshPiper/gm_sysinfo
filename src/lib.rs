@@ -159,6 +159,18 @@ unsafe fn get_available_memory(lua: State) -> i32 {
 }
 
 #[lua_function]
+unsafe fn get_uptime(lua: State) -> i32 {
+    lua.push_number(System::uptime() as f64);
+    1
+}
+
+#[lua_function]
+unsafe fn get_boot_time(lua: State) -> i32 {
+    lua.push_number(System::boot_time() as f64);
+    1
+}
+
+#[lua_function]
 unsafe fn get_system_name(lua: State) -> i32 {
     if INFO.name.is_empty() {
         error(lua, err!("read the system name"));
@@ -274,7 +286,7 @@ unsafe fn gmod13_open(lua: State) -> i32 {
     LazyLock::force(&INFO);
 
     // Create _G.sysinfo
-    lua.create_table(0, 15);
+    lua.create_table(0, 17);
     export_lua_function!(get_core_count);
     export_lua_function!(get_memory);
     export_lua_function!(get_swap);
@@ -283,6 +295,8 @@ unsafe fn gmod13_open(lua: State) -> i32 {
     export_lua_function!(get_used_memory);
     export_lua_function!(get_free_memory);
     export_lua_function!(get_available_memory);
+    export_lua_function!(get_uptime);
+    export_lua_function!(get_boot_time);
     export_lua_function!(get_system_name);
     export_lua_function!(get_system_long_version);
     export_lua_function!(get_system_version);

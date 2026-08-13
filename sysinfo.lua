@@ -51,6 +51,16 @@ function sysinfo.get_free_memory() end
 --- @return number
 function sysinfo.get_available_memory() end
 
+--- Returns seconds since the host booted. Never raises. Live -- read fresh
+--- from the OS each call.
+--- @return number
+function sysinfo.get_uptime() end
+
+--- Returns the host's boot time as a Unix timestamp (seconds since epoch).
+--- Never raises. Fixed for the life of the boot, but read fresh each call.
+--- @return number
+function sysinfo.get_boot_time() end
+
 --- Returns the system name.
 --- Raises a Lua error if the system name could not be read.
 --- @return string

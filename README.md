@@ -91,6 +91,12 @@ local mib = math.floor(sysinfo.get_memory() / 1024 / 1024)
 ### `sysinfo.get_available_memory(): number`
 **Live.** Returns memory available for new allocations without swapping, in bytes. Never raises. This is the number you almost always want over `get_free_memory()`: on Linux, "free" excludes memory the kernel is using for reclaimable disk cache, which in practice is available on demand. "Available" accounts for that.
 
+### `sysinfo.get_uptime(): number`
+**Live.** Returns seconds since the host booted. Never raises.
+
+### `sysinfo.get_boot_time(): number`
+**Live** in the sense that it's read fresh each call, but the value itself is fixed for the life of the boot — a Unix timestamp (seconds since epoch). Never raises.
+
 ### `sysinfo.get_system_name(): string`
 **Static.** Returns the system name.
 
