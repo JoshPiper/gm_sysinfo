@@ -1,25 +1,21 @@
 # Contributing to gm_sysinfo
 
-A'ite, thanks for taking a look. This is a small project so the process is light — but there's one rule below that isn't optional, and it's worth reading before you open a PR rather than after CI's confused you.
-
----
-
 ## Purpose
 
 This document exists to:
-- Explain the one rule that actually matters, and why it's not negotiable.
-- Set out what CI gates a PR on, so you're not guessing.
+- Explain how commit messages drive versioning and releases.
+- Set out what CI gates a PR on.
 - Save you rediscovering the local build/lint/test setup by trial and error.
 
 ---
 
-## Commit messages must be Conventional Commits
+## Conventional Commits
 
-Not a style preference. [release-plz](https://release-plz.dev) reads your commit messages to decide whether a release happens, what version it gets, and what the changelog says. Get the type wrong and nothing breaks loudly — nothing happens at all, which is worse. No release, no changelog entry, no warning. The commit just sits there looking normal.
+release-plz reads commit messages to drive versioning, changelogs, and releases.
 
 Format: `<type>[optional scope]: <description>`
 
-**Types that matter to the release process:**
+Types:
 
 | Type | Effect |
 |---|---|
