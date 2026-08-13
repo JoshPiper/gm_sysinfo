@@ -7,7 +7,9 @@ license = "MIT"
 repository = "https://github.com/JoshPiper/gm_sysinfo"
 readme = "README.md"
 keywords = ["garrysmod", "gmod", "binary-module", "sysinfo"]
-publish = false
+# Do not add publish = false here: release-plz's release command filters on
+# this manifest field and would skip the package entirely ("nothing to
+# release"). The crates.io publish opt-out lives in release-plz.toml instead.
 
 [lib]
 name = "gm_sysinfo"
