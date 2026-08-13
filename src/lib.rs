@@ -4,7 +4,16 @@ use gmod::lua::{LuaString, State};
 use gmod::{gmod13_close, gmod13_open, lua_function, lua_string};
 use sysinfo::{MemoryRefreshKind, RefreshKind, System};
 
+mod build_info {
+    include!(concat!(env!("OUT_DIR"), "/built.rs"));
+}
+
 static MOD_NAME: &str = "sysinfo";
+#[cfg(feature = "gmcl")]
+static REALM: &str = "cl";
+#[cfg(not(feature = "gmcl"))]
+static REALM: &str = "sv";
+
 macro_rules! err {
     ($arg:literal) => {
         format!("{} was unable to {}", MOD_NAME, $arg)
@@ -123,6 +132,55 @@ unsafe fn get_host_name(lua: State) -> i32 {
     1
 }
 
+#[lua_function]
+unsafe fn get_version(lua: State) -> i32 {
+    lua.push_string(build_info::PKG_VERSION);
+    1
+}
+
+#[lua_function]
+unsafe fn get_build_info(lua: State) -> i32 {
+    macro_rules! set_field {
+        ($key:literal, $push:expr) => {
+            $push;
+            lua.set_field(-2, lua_string!($key));
+        };
+    }
+    macro_rules! set_opt_str_field {
+        ($key:literal, $value:expr) => {
+            match $value {
+                Some(v) => lua.push_string(v),
+                None => lua.push_nil(),
+            }
+            lua.set_field(-2, lua_string!($key));
+        };
+    }
+
+    lua.create_table(0, 10);
+    set_field!("version", lua.push_string(build_info::PKG_VERSION));
+    set_opt_str_field!("commit", build_info::GIT_COMMIT_HASH);
+    set_opt_str_field!("commit_short", build_info::GIT_COMMIT_HASH_SHORT);
+    match build_info::GIT_DIRTY {
+        Some(dirty) => lua.push_boolean(dirty),
+        None => lua.push_nil(),
+    }
+    lua.set_field(-2, lua_string!("dirty"));
+    set_field!("built_at", lua.push_string(build_info::BUILT_TIME_UTC));
+    set_field!("target", lua.push_string(build_info::TARGET));
+    set_field!("rustc_version", lua.push_string(build_info::RUSTC_VERSION));
+    set_field!("realm", lua.push_string(REALM));
+    // True when built by a recognised CI platform (currently: GitHub Actions),
+    // as opposed to a local `cargo build`. See README for what this promises.
+    set_field!(
+        "official",
+        lua.push_boolean(build_info::CI_PLATFORM.is_some())
+    );
+    set_field!("repository", lua.push_string(env!("BUILD_REPOSITORY")));
+    set_field!("run_url", lua.push_string(env!("BUILD_RUN_URL")));
+
+    1
+}
+
 #[gmod13_open]
 unsafe fn gmod13_open(lua: State) -> i32 {
     macro_rules! export_lua_function {
@@ -140,7 +198,7 @@ unsafe fn gmod13_open(lua: State) -> i32 {
     LazyLock::force(&INFO);
 
     // Create _G.sysinfo
-    lua.create_table(0, 8);
+    lua.create_table(0, 10);
     export_lua_function!(get_core_count);
     export_lua_function!(get_memory);
     export_lua_function!(get_swap);
@@ -149,6 +207,8 @@ unsafe fn gmod13_open(lua: State) -> i32 {
     export_lua_function!(get_system_version);
     export_lua_function!(get_kernel_version);
     export_lua_function!(get_host_name);
+    export_lua_function!(get_version);
+    export_lua_function!(get_build_info);
     lua.set_global(lua_string!("sysinfo"));
 
     0
