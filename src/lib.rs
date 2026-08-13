@@ -1,8 +1,11 @@
-use std::sync::LazyLock;
+use std::sync::{LazyLock, Mutex};
+use std::time::Instant;
 
 use gmod::lua::{LuaString, State};
 use gmod::{gmod13_close, gmod13_open, lua_function, lua_string};
-use sysinfo::{MemoryRefreshKind, RefreshKind, System};
+use sysinfo::{
+    CpuRefreshKind, MemoryRefreshKind, RefreshKind, System, MINIMUM_CPU_UPDATE_INTERVAL,
+};
 
 mod build_info {
     include!(concat!(env!("OUT_DIR"), "/built.rs"));
@@ -50,6 +53,55 @@ static INFO: LazyLock<Snapshot> = LazyLock::new(|| {
 
 unsafe fn error<S: AsRef<str>>(lua: State, err: S) -> ! {
     lua.error(err)
+}
+
+/// Values that can change while the server runs (memory pressure, CPU load),
+/// unlike `Snapshot`'s facts. Refreshed on demand and throttled per kind --
+/// sysinfo recommends not refreshing CPU data faster than
+/// `MINIMUM_CPU_UPDATE_INTERVAL`, and memory doesn't need polling any harder
+/// than that either.
+struct Cache {
+    system: System,
+    last_memory_refresh: Option<Instant>,
+    last_cpu_refresh: Option<Instant>,
+}
+
+static CACHE: LazyLock<Mutex<Cache>> = LazyLock::new(|| {
+    Mutex::new(Cache {
+        system: System::new(),
+        last_memory_refresh: None,
+        last_cpu_refresh: None,
+    })
+});
+
+#[allow(dead_code)] // consumed starting with the swap-used-free layer
+fn with_memory<T>(f: impl FnOnce(&System) -> T) -> T {
+    let mut cache = CACHE.lock().unwrap_or_else(|e| e.into_inner());
+    if cache
+        .last_memory_refresh
+        .is_none_or(|t| t.elapsed() >= MINIMUM_CPU_UPDATE_INTERVAL)
+    {
+        cache
+            .system
+            .refresh_memory_specifics(MemoryRefreshKind::everything());
+        cache.last_memory_refresh = Some(Instant::now());
+    }
+    f(&cache.system)
+}
+
+#[allow(dead_code)] // consumed starting with the cpu-and-distro layer
+fn with_cpu<T>(f: impl FnOnce(&System) -> T) -> T {
+    let mut cache = CACHE.lock().unwrap_or_else(|e| e.into_inner());
+    if cache
+        .last_cpu_refresh
+        .is_none_or(|t| t.elapsed() >= MINIMUM_CPU_UPDATE_INTERVAL)
+    {
+        cache
+            .system
+            .refresh_cpu_specifics(CpuRefreshKind::nothing().with_cpu_usage());
+        cache.last_cpu_refresh = Some(Instant::now());
+    }
+    f(&cache.system)
 }
 
 #[lua_function]
