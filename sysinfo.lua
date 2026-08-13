@@ -24,6 +24,16 @@ function sysinfo.get_memory() end
 --- @return number
 function sysinfo.get_swap() end
 
+--- Returns swap currently in use, in bytes. Never raises. Live -- read fresh
+--- from the OS each call (internally throttled).
+--- @return number
+function sysinfo.get_used_swap() end
+
+--- Returns unused swap space, in bytes. Never raises. Live -- read fresh
+--- from the OS each call (internally throttled).
+--- @return number
+function sysinfo.get_free_swap() end
+
 --- Returns the system name.
 --- Raises a Lua error if the system name could not be read.
 --- @return string

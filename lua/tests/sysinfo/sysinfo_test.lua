@@ -37,6 +37,24 @@ return {
             end
         },
         {
+            name = "Reports used/free swap as non-negative bytes that add up to about the total, never raising",
+            func = function()
+                local total = sysinfo.get_swap()
+                local used = sysinfo.get_used_swap()
+                local free = sysinfo.get_free_swap()
+
+                expect(used).to.beA("number")
+                expect(free).to.beA("number")
+                expect(used).toNot.beLessThan(0)
+                expect(free).toNot.beLessThan(0)
+
+                -- Three separate reads, not one atomic snapshot -- allow a
+                -- little drift rather than requiring an exact match.
+                local drift = math.abs((used + free) - total)
+                expect(drift).to.beLessThan(math.max(total * 0.05, 1))
+            end
+        },
+        {
             name = "Identity getters return a non-empty string, or raise when unavailable",
             func = function()
                 -- Minimal containers may lack e.g. /etc/os-release, in which

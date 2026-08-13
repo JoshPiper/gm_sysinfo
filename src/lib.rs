@@ -72,7 +72,6 @@ static CACHE: LazyLock<Mutex<Cache>> = LazyLock::new(|| {
     })
 });
 
-#[allow(dead_code)] // consumed starting with the swap-used-free layer
 fn with_memory<T>(f: impl FnOnce(&System) -> T) -> T {
     let mut cache = CACHE.lock().unwrap_or_else(|e| e.into_inner());
     if cache
@@ -126,6 +125,18 @@ unsafe fn get_memory(lua: State) -> i32 {
 unsafe fn get_swap(lua: State) -> i32 {
     // 0 is legitimate -- sysinfo can't tell "no swap" from "failed to read".
     lua.push_number(INFO.total_swap as f64);
+    1
+}
+
+#[lua_function]
+unsafe fn get_used_swap(lua: State) -> i32 {
+    with_memory(|sys| lua.push_number(sys.used_swap() as f64));
+    1
+}
+
+#[lua_function]
+unsafe fn get_free_swap(lua: State) -> i32 {
+    with_memory(|sys| lua.push_number(sys.free_swap() as f64));
     1
 }
 
@@ -245,10 +256,12 @@ unsafe fn gmod13_open(lua: State) -> i32 {
     LazyLock::force(&INFO);
 
     // Create _G.sysinfo
-    lua.create_table(0, 10);
+    lua.create_table(0, 12);
     export_lua_function!(get_core_count);
     export_lua_function!(get_memory);
     export_lua_function!(get_swap);
+    export_lua_function!(get_used_swap);
+    export_lua_function!(get_free_swap);
     export_lua_function!(get_system_name);
     export_lua_function!(get_system_long_version);
     export_lua_function!(get_system_version);
