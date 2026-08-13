@@ -48,12 +48,12 @@ An [LuaLS](https://github.com/LuaLS/lua-language-server) type definition file is
 ## Semantics
 
 - Every value except `get_version()` and `get_build_info()` is **snapshotted once**, when the module loads, not re-read on each call — cheap to call repeatedly, but won't reflect a mid-session change (e.g. hot-added swap).
-- Every getter **raises a Lua error** (rather than returning `nil` or `0`) if its value is unavailable. If a value might legitimately be absent on your target platform — `get_swap()` on a swapless container is the common case — wrap the call in `pcall`:
+- Most getters **raise a Lua error** (rather than returning `nil`) if their value couldn't be read at all. A handful return `0` instead where zero is itself a legitimate answer rather than a failure signal — `get_swap()` on a swapless host being the common case — see each function's entry in the API reference below for which rule applies. If you're calling something platform-specific that might not apply to the host you're on, wrap it in `pcall`:
 
   ```lua
-  local ok, swap = pcall(sysinfo.get_swap)
+  local ok, value = pcall(sysinfo.get_kernel_version)
   if ok then
-      print("Swap: " .. swap .. " bytes")
+      print("Kernel: " .. value)
   end
   ```
 
@@ -70,7 +70,7 @@ local mib = math.floor(sysinfo.get_memory() / 1024 / 1024)
 ```
 
 ### `sysinfo.get_swap(): number`
-Returns total swap space, in bytes.
+Returns total swap space, in bytes. Returns `0` (never raises) if the host has no swap configured — that's a legitimate, common state, not a read failure.
   
 ### `sysinfo.get_system_name(): string`
 Returns the system name.

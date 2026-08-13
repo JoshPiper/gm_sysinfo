@@ -19,9 +19,8 @@ function sysinfo.get_core_count() end
 --- @return number
 function sysinfo.get_memory() end
 
---- Returns total swap space, in bytes.
---- Raises a Lua error if the swap size could not be read (including on
---- systems with no swap configured).
+--- Returns total swap space, in bytes. Returns 0 (never raises) if the host
+--- has no swap configured.
 --- @return number
 function sysinfo.get_swap() end
 

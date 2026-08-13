@@ -26,14 +26,14 @@ return {
             end
         },
         {
-            name = "Reports swap as positive bytes, or raises when absent",
+            name = "Reports swap as non-negative bytes, never raising",
             func = function()
-                -- Containers commonly have no swap; the API contract is to
-                -- raise a Lua error rather than return 0.
-                local ok, swap = pcall( sysinfo.get_swap )
-                if ok then
-                    expect( swap ).to.beGreaterThan( 0 )
-                end
+                -- 0 is a legitimate answer here (no swap configured) rather
+                -- than a failure -- unlike the other getters, this must
+                -- never raise.
+                local swap = sysinfo.get_swap()
+                expect( swap ).to.beA( "number" )
+                expect( swap ).toNot.beLessThan( 0 )
             end
         },
         {

@@ -124,10 +124,7 @@ unsafe fn get_memory(lua: State) -> i32 {
 
 #[lua_function]
 unsafe fn get_swap(lua: State) -> i32 {
-    if INFO.total_swap == 0 {
-        error(lua, err!("read the system swap space"));
-    }
-
+    // 0 is legitimate -- sysinfo can't tell "no swap" from "failed to read".
     lua.push_number(INFO.total_swap as f64);
     1
 }
