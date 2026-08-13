@@ -140,11 +140,11 @@ return {
             name = "Reports load average as a table of three non-negative numbers, never raising",
             func = function()
                 local avg = sysinfo.get_load_average()
-                expect( avg ).to.exist()
+                expect(avg).to.exist()
 
-                for _, key in ipairs( { "one", "five", "fifteen" } ) do
-                    expect( avg[key] ).to.beA( "number" )
-                    expect( avg[key] ).toNot.beLessThan( 0 )
+                for _, key in ipairs({ "one", "five", "fifteen" }) do
+                    expect(avg[key]).to.beA("number")
+                    expect(avg[key]).toNot.beLessThan(0)
                 end
             end
         },
