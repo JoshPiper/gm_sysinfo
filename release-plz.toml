@@ -1,0 +1,9 @@
+[workspace]
+# Not published to crates.io; releases are git tags + GitHub releases only.
+publish = false
+git_tag_enable = true
+git_release_enable = true
+# Created as a draft; the release workflow undrafts after binaries attach,
+# so a release is never visible without its assets.
+git_release_draft = true
+changelog_update = true

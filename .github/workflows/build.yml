@@ -1,135 +1,52 @@
-name: Auto-Tag and Build
+name: Build
 
 on:
-  push:
-    branches:
-      - master
-      - main
+  workflow_call:
+
+permissions:
+  contents: read
 
 jobs:
-  check-changes:
-    name: Check Changes
-    runs-on: ubuntu-latest
-    outputs:
-      tag: ${{ steps.changelog.outputs.tag }}
-      skipped: ${{ steps.changelog.outputs.skipped }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - name: Check Changes
-        uses: TriPSs/conventional-changelog-action@v3
-        id: changelog
-        with:
-          github-token: ${{ secrets.github_token }}
-          skip-git-pull: true
-          version-file: "./Cargo.toml"
-          version-path: "package.version"
-          fallback-version: "0.1.0"
-          pre-commit: "build/pre-commit.js"
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
-        if: ${{ steps.changelog.outputs.skipped == 'false' }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.github_token }}
-        with:
-          tag_name: ${{ steps.changelog.outputs.tag }}
-          name: ${{ steps.changelog.outputs.tag }}
-          body: ${{ steps.changelog.outputs.clean_changelog }}
-          generate_release_notes: false
-
-  build-linux:
-    name: Build Linux Modules
-    runs-on: ubuntu-latest
-    needs: [check-changes]
-    if: ${{ needs.check-changes.outputs.skipped == 'false' }}
+  build:
+    name: ${{ matrix.file }}
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        platform: [linux]
-        architecture: [32, 64]
-        realm: [cl, sv]
+        include:
+          - { os: windows-latest, target: i686-pc-windows-msvc,     realm: sv, file: gmsv_sysinfo_win32.dll,   built: gm_sysinfo.dll }
+          - { os: windows-latest, target: i686-pc-windows-msvc,     realm: cl, file: gmcl_sysinfo_win32.dll,   built: gm_sysinfo.dll }
+          - { os: windows-latest, target: x86_64-pc-windows-msvc,   realm: sv, file: gmsv_sysinfo_win64.dll,   built: gm_sysinfo.dll }
+          - { os: windows-latest, target: x86_64-pc-windows-msvc,   realm: cl, file: gmcl_sysinfo_win64.dll,   built: gm_sysinfo.dll }
+          - { os: ubuntu-latest,  target: i686-unknown-linux-gnu,   realm: sv, file: gmsv_sysinfo_linux.dll,   built: libgm_sysinfo.so }
+          - { os: ubuntu-latest,  target: i686-unknown-linux-gnu,   realm: cl, file: gmcl_sysinfo_linux.dll,   built: libgm_sysinfo.so }
+          - { os: ubuntu-latest,  target: x86_64-unknown-linux-gnu, realm: sv, file: gmsv_sysinfo_linux64.dll, built: libgm_sysinfo.so }
+          - { os: ubuntu-latest,  target: x86_64-unknown-linux-gnu, realm: cl, file: gmcl_sysinfo_linux64.dll, built: libgm_sysinfo.so }
+          - { os: macos-latest,   target: x86_64-apple-darwin,      realm: sv, file: gmsv_sysinfo_osx64.dll,   built: libgm_sysinfo.dylib }
+          - { os: macos-latest,   target: x86_64-apple-darwin,      realm: cl, file: gmcl_sysinfo_osx64.dll,   built: libgm_sysinfo.dylib }
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          ref: ${{ needs.check-changes.outputs.tag }}
-      - name: Fetch Toolchain Information
-        run: node build/get-toolchain.js
-        id: toolchain
-        env:
-          PLATFORM: ${{ matrix.platform }}
-          ARCH: ${{ matrix.architecture }}
-          REALM: ${{ matrix.realm }}
-      - name: Setup Toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: nightly
-          target: ${{ steps.toolchain.outputs.toolchain }}
-          override: true
-      - name: Setup Multilib
-        if: ${{ matrix.architecture == 32 }}
-        run: sudo apt-get install -y gcc-multilib
-      - name: Build
-        uses: actions-rs/cargo@v1
-        with:
-          use-cross: false
-          command: build
-          args: --release ${{ steps.toolchain.outputs.features }} --target ${{ steps.toolchain.outputs.toolchain }} --locked
-      - name: Strip Debug Symbols
-        run: strip target/${{ steps.toolchain.outputs.toolchain }}/release/libgm_sysinfo.so
-      - name: Rename Outputs
-        run: mv target/${{ steps.toolchain.outputs.toolchain }}/release/libgm_sysinfo.so  ${{ steps.toolchain.outputs.file }}
-      - name: Upload Release Asset
-        uses: softprops/action-gh-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.github_token }}
-        with:
-          tag_name: ${{ needs.check-changes.outputs.tag }}
-          files: ${{ steps.toolchain.outputs.file }}
+        uses: actions/checkout@v7
 
-  build-windows:
-    runs-on: windows-latest
-    name: Build Windows Modules
-    needs: [check-changes]
-    if: ${{ needs.check-changes.outputs.skipped == 'false' }}
-    strategy:
-      fail-fast: false
-      matrix:
-        platform: [win]
-        architecture: [32, 64]
-        realm: [cl, sv]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          ref: ${{ needs.check-changes.outputs.tag }}
-      - name: Fetch Toolchain Information
-        run: node build/get-toolchain.js
-        id: toolchain
-        env:
-          PLATFORM: ${{ matrix.platform }}
-          ARCH: ${{ matrix.architecture }}
-          REALM: ${{ matrix.realm }}
-      - name: Setup Toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: nightly
-          target: ${{ steps.toolchain.outputs.toolchain }}
-          override: true
+      # rustup reads rust-toolchain.toml: pinned nightly, components, targets.
+      - name: Install toolchain
+        run: rustup toolchain install
+
+      - name: Install multilib
+        if: matrix.target == 'i686-unknown-linux-gnu'
+        run: sudo apt-get update && sudo apt-get install -y gcc-multilib
+
       - name: Build
-        uses: actions-rs/cargo@v1
+        shell: bash
+        run: cargo build --release --locked --target ${{ matrix.target }} ${{ matrix.realm == 'cl' && '--features gmcl' || '' }}
+
+      - name: Rename output
+        shell: bash
+        run: mv "target/${{ matrix.target }}/release/${{ matrix.built }}" "${{ matrix.file }}"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
         with:
-          use-cross: false
-          command: build
-          args: --release ${{ steps.toolchain.outputs.features }} --target ${{ steps.toolchain.outputs.toolchain }} --locked
-      - name: Rename Outputs
-        run: mv target/${{ steps.toolchain.outputs.toolchain }}/release/gm_sysinfo.dll  ${{ steps.toolchain.outputs.file }}
-      - name: Upload Release Asset
-        uses: softprops/action-gh-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.github_token }}
-        with:
-          tag_name: ${{ needs.check-changes.outputs.tag }}
-          files: ${{ steps.toolchain.outputs.file }}
+          name: ${{ matrix.file }}
+          path: ${{ matrix.file }}
+          if-no-files-found: error

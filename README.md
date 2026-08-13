@@ -8,7 +8,9 @@ Download a copy of the module from the releases (or compile from source)
 Move the downloaded file to `<Garry's Mod Installation>/lua/bin/gm<state>_sysinfo_<platform>.dll`
 
 State can be either cl or sv, for the client and server, respectively.
-Platform can be one of win32, win64, linux or linux64 for 32 bit (main branch) Windows, 64 bit (x64 branch) Windows, and 32/64 bit Linux builds respectively. 
+Platform can be one of win32, win64, linux, linux64 or osx64 for 32 bit (main branch) Windows, 64 bit (x64 branch) Windows, 32/64 bit Linux, and 64 bit (x64 branch) macOS builds respectively.
+
+On macOS, downloaded modules carry the quarantine attribute and may be blocked from loading; clear it with `xattr -d com.apple.quarantine <file>`.
 
 
 ## Usage
