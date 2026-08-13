@@ -45,8 +45,8 @@ return {
 
                 expect( used ).to.beA( "number" )
                 expect( free ).to.beA( "number" )
-                expect( used ).to.beGreaterThan( -1 )
-                expect( free ).to.beGreaterThan( -1 )
+                expect( used ).toNot.beLessThan( 0 )
+                expect( free ).toNot.beLessThan( 0 )
 
                 -- Three separate reads, not one atomic snapshot -- allow a
                 -- little drift rather than requiring an exact match.
