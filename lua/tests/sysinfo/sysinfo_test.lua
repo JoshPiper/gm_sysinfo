@@ -32,8 +32,8 @@ return {
                 -- than a failure -- unlike the other getters, this must
                 -- never raise.
                 local swap = sysinfo.get_swap()
-                expect( swap ).to.beA( "number" )
-                expect( swap ).toNot.beLessThan( 0 )
+                expect(swap).to.beA("number")
+                expect(swap).toNot.beLessThan(0)
             end
         },
         {
