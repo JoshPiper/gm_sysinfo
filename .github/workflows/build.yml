@@ -36,9 +36,17 @@ jobs:
         if: matrix.target == 'i686-unknown-linux-gnu'
         run: sudo apt-get update && sudo apt-get install -y gcc-multilib
 
+      # Embeds the resolved dependency tree in the binary itself (a `.dep-v0`
+      # linker section), so `cargo audit bin <file>` works on a shipped
+      # binary years later, without needing a separate SBOM lookup.
+      - name: Install cargo-auditable
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-auditable
+
       - name: Build
         shell: bash
-        run: cargo build --release --locked --target ${{ matrix.target }} ${{ matrix.realm == 'cl' && '--features gmcl' || '' }}
+        run: cargo auditable build --release --locked --target ${{ matrix.target }} ${{ matrix.realm == 'cl' && '--features gmcl' || '' }}
 
       - name: Rename output
         shell: bash

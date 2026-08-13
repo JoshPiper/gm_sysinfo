@@ -71,13 +71,16 @@ jobs:
     if: needs.release.outputs.releases_created == 'true'
     uses: ./.github/workflows/build.yml
 
-  upload-assets:
-    name: Attach assets and publish
+  package-assets:
+    name: Provenance, SBOM, and publish
     needs: [release, build-assets]
     if: needs.release.outputs.releases_created == 'true'
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: write # upload release assets, undraft the release
+      id-token: write # sign the provenance attestation (OIDC)
+      attestations: write # publish the attestation to the repo
+      actions: read # download artifacts produced by build-assets
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -86,11 +89,34 @@ jobs:
         id: tag
         run: echo "tag=v$(grep -m1 '^version' Cargo.toml | cut -d '"' -f 2)" >> "$GITHUB_OUTPUT"
 
-      - name: Download artifacts
+      - name: Install toolchain
+        run: rustup toolchain install
+
+      - name: Install cargo-cyclonedx
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-cyclonedx
+
+      - name: Generate SBOM
+        run: cargo cyclonedx --format json
+
+      - name: Download build artifacts
         uses: actions/download-artifact@v8
         with:
           path: assets
           merge-multiple: true
+
+      - name: Assemble release assets
+        run: |
+          mv bom.json "assets/gm_sysinfo-${{ steps.tag.outputs.tag }}.cdx.json"
+          (cd assets && sha256sum -- * > SHA256SUMS)
+
+      # Signed SLSA build provenance, queryable later with:
+      #   gh attestation verify <file> -R JoshPiper/gm_sysinfo
+      - name: Attest provenance
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-path: assets/*
 
       - name: Upload assets and undraft release
         env:
