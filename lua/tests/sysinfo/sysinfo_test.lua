@@ -79,12 +79,12 @@ return {
                 local uptime = sysinfo.get_uptime()
                 local boot_time = sysinfo.get_boot_time()
 
-                expect( uptime ).to.beA( "number" )
-                expect( boot_time ).to.beA( "number" )
-                expect( uptime ).toNot.beLessThan( 0 )
+                expect(uptime).to.beA("number")
+                expect(boot_time).to.beA("number")
+                expect(uptime).toNot.beLessThan(0)
 
                 -- CI runners don't predate the epoch.
-                expect( boot_time ).to.beGreaterThan( 0 )
+                expect(boot_time).to.beGreaterThan(0)
             end
         },
         {
