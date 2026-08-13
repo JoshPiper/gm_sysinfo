@@ -61,6 +61,29 @@ function sysinfo.get_uptime() end
 --- @return number
 function sysinfo.get_boot_time() end
 
+--- Returns global CPU usage as a percentage (0-100, roughly). Never raises.
+--- Computed by diffing against the previous reading, so the first call after
+--- the module loads is unreliable (not necessarily 0) -- every call after
+--- that is meaningful.
+--- @return number
+function sysinfo.get_cpu_usage() end
+
+--- Returns the CPU architecture, e.g. "x86_64". Never raises.
+--- @return string
+function sysinfo.get_cpu_arch() end
+
+--- Despite the name, not Linux-specific: on Linux this is the distribution
+--- id (e.g. "ubuntu"); elsewhere it falls back to a normalized platform name
+--- ("windows", "macos"). Never raises.
+--- @return string
+function sysinfo.get_distro_id() end
+
+--- Returns an array of the distribution's closest relatives (e.g. {"debian"}
+--- for Ubuntu). Never raises -- an empty table is the normal answer on most
+--- non-Linux platforms and plenty of Linux distributions too.
+--- @return string[]
+function sysinfo.get_distro_id_like() end
+
 --- Returns the system name.
 --- Raises a Lua error if the system name could not be read.
 --- @return string

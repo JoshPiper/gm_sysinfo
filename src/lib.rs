@@ -86,7 +86,6 @@ fn with_memory<T>(f: impl FnOnce(&System) -> T) -> T {
     f(&cache.system)
 }
 
-#[allow(dead_code)] // consumed starting with the cpu-and-distro layer
 fn with_cpu<T>(f: impl FnOnce(&System) -> T) -> T {
     let mut cache = CACHE.lock().unwrap_or_else(|e| e.into_inner());
     if cache
@@ -167,6 +166,43 @@ unsafe fn get_uptime(lua: State) -> i32 {
 #[lua_function]
 unsafe fn get_boot_time(lua: State) -> i32 {
     lua.push_number(System::boot_time() as f64);
+    1
+}
+
+#[lua_function]
+unsafe fn get_cpu_usage(lua: State) -> i32 {
+    with_cpu(|sys| lua.push_number(sys.global_cpu_usage() as f64));
+    1
+}
+
+#[lua_function]
+unsafe fn get_cpu_arch(lua: State) -> i32 {
+    // Always populated: sysinfo falls back to the build's target arch if the
+    // OS query fails.
+    lua.push_string(&System::cpu_arch());
+    1
+}
+
+#[lua_function]
+unsafe fn get_distro_id(lua: State) -> i32 {
+    // Despite the name, not Linux-specific -- sysinfo falls back to
+    // std::env::consts::OS ("windows", "macos", ...) everywhere else, so
+    // this is always populated too.
+    lua.push_string(&System::distribution_id());
+    1
+}
+
+#[lua_function]
+unsafe fn get_distro_id_like(lua: State) -> i32 {
+    // A plain array of strings, commonly empty -- that's not a failure, most
+    // platforms (and plenty of Linux distros, e.g. Arch) just don't have any
+    // declared relatives.
+    let ids = System::distribution_id_like();
+    lua.create_table(ids.len() as i32, 0);
+    for (i, id) in ids.iter().enumerate() {
+        lua.push_string(id);
+        lua.raw_seti(-2, (i + 1) as i32);
+    }
     1
 }
 
@@ -286,7 +322,7 @@ unsafe fn gmod13_open(lua: State) -> i32 {
     LazyLock::force(&INFO);
 
     // Create _G.sysinfo
-    lua.create_table(0, 17);
+    lua.create_table(0, 21);
     export_lua_function!(get_core_count);
     export_lua_function!(get_memory);
     export_lua_function!(get_swap);
@@ -297,6 +333,10 @@ unsafe fn gmod13_open(lua: State) -> i32 {
     export_lua_function!(get_available_memory);
     export_lua_function!(get_uptime);
     export_lua_function!(get_boot_time);
+    export_lua_function!(get_cpu_usage);
+    export_lua_function!(get_cpu_arch);
+    export_lua_function!(get_distro_id);
+    export_lua_function!(get_distro_id_like);
     export_lua_function!(get_system_name);
     export_lua_function!(get_system_long_version);
     export_lua_function!(get_system_version);

@@ -88,6 +88,23 @@ return {
             end
         },
         {
+            name = "Reports CPU usage as a number in a sane range, never raising",
+            func = function()
+                local usage = sysinfo.get_cpu_usage()
+                expect( usage ).to.beA( "number" )
+                expect( usage ).to.beGreaterThan( -1 )
+                expect( usage ).to.beLessThan( 100 * sysinfo.get_core_count() + 1 )
+            end
+        },
+        {
+            name = "Reports CPU architecture as a non-empty string, never raising",
+            func = function()
+                local arch = sysinfo.get_cpu_arch()
+                expect( arch ).to.beA( "string" )
+                expect( #arch ).to.beGreaterThan( 0 )
+            end
+        },
+        {
             name = "Identity getters return a non-empty string, or raise when unavailable",
             func = function()
                 -- Minimal containers may lack e.g. /etc/os-release, in which
@@ -106,6 +123,28 @@ return {
                         expect( value ).to.beA( "string" )
                         expect( #value ).to.beGreaterThan( 0 )
                     end
+                end
+            end
+        },
+        {
+            name = "Reports distro id as a non-empty string, never raising",
+            func = function()
+                -- CI runs on Linux, so this should be a real distro id --
+                -- but the contract holds on any platform.
+                local id = sysinfo.get_distro_id()
+                expect( id ).to.beA( "string" )
+                expect( #id ).to.beGreaterThan( 0 )
+            end
+        },
+        {
+            name = "Reports distro id-like as a table of strings, never raising",
+            func = function()
+                local relatives = sysinfo.get_distro_id_like()
+                expect( relatives ).to.beA( "table" )
+
+                for _, relative in ipairs( relatives ) do
+                    expect( relative ).to.beA( "string" )
+                    expect( #relative ).to.beGreaterThan( 0 )
                 end
             end
         },
