@@ -33,7 +33,7 @@ return {
                 -- never raise.
                 local swap = sysinfo.get_swap()
                 expect( swap ).to.beA( "number" )
-                expect( swap ).to.beGreaterThan( -1 )
+                expect( swap ).toNot.beLessThan( 0 )
             end
         },
         {
