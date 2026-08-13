@@ -43,15 +43,15 @@ return {
                 local used = sysinfo.get_used_swap()
                 local free = sysinfo.get_free_swap()
 
-                expect( used ).to.beA( "number" )
-                expect( free ).to.beA( "number" )
-                expect( used ).toNot.beLessThan( 0 )
-                expect( free ).toNot.beLessThan( 0 )
+                expect(used).to.beA("number")
+                expect(free).to.beA("number")
+                expect(used).toNot.beLessThan(0)
+                expect(free).toNot.beLessThan(0)
 
                 -- Three separate reads, not one atomic snapshot -- allow a
                 -- little drift rather than requiring an exact match.
-                local drift = math.abs( ( used + free ) - total )
-                expect( drift ).to.beLessThan( math.max( total * 0.05, 1 ) )
+                local drift = math.abs((used + free) - total)
+                expect(drift).to.beLessThan(math.max(total * 0.05, 1))
             end
         },
         {
