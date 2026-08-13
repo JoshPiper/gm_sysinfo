@@ -82,6 +82,40 @@ local mib = math.floor(sysinfo.get_memory() / 1024 / 1024)
 ### `sysinfo.get_free_swap(): number`
 **Live.** Returns unused swap space, in bytes. Never raises.
 
+### `sysinfo.get_used_memory(): number`
+**Live.** Returns memory currently in use, in bytes. Never raises.
+
+### `sysinfo.get_free_memory(): number`
+**Live.** Returns memory not used for anything, in bytes. Never raises. On Linux this is usually much lower than you'd expect — see `get_available_memory()`.
+
+### `sysinfo.get_available_memory(): number`
+**Live.** Returns memory available for new allocations without swapping, in bytes. Never raises. This is the number you almost always want over `get_free_memory()`: on Linux, "free" excludes memory the kernel is using for reclaimable disk cache, which in practice is available on demand. "Available" accounts for that.
+
+### `sysinfo.get_uptime(): number`
+**Live.** Returns seconds since the host booted. Never raises.
+
+### `sysinfo.get_boot_time(): number`
+**Live** in the sense that it's read fresh each call, but the value itself is fixed for the life of the boot — a Unix timestamp (seconds since epoch). Never raises.
+
+### `sysinfo.get_cpu_usage(): number`
+**Live.** Returns global CPU usage as a percentage (`0`–`100`, roughly — see below). Never raises. CPU usage is computed by diffing against the previous reading, so **the very first call after the module loads is unreliable** (sysinfo's own docs: "very likely inaccurate" — not necessarily `0`, it can read as the platform maximum instead); every call after that reflects usage since the last internal refresh (throttled the same way memory is — see [Semantics](#semantics)).
+
+### `sysinfo.get_cpu_arch(): string`
+**Static.** Returns the CPU architecture (e.g. `"x86_64"`). Never raises.
+
+### `sysinfo.get_distro_id(): string`
+**Static.** Despite the name, not Linux-specific: on Linux it's the distribution id (e.g. `"ubuntu"`); elsewhere it falls back to a normalized platform name (`"windows"`, `"macos"`). Never raises.
+
+### `sysinfo.get_distro_id_like(): table`
+**Static.** Returns an array of the distribution's closest relatives (e.g. `{"debian"}` for Ubuntu), as reported by the OS. Never raises — an empty table (`{}`) is the normal answer on most non-Linux platforms and plenty of Linux distributions too (Arch, for instance, declares none).
+
+### `sysinfo.get_load_average(): table`
+**Live.** Returns `{one, five, fifteen}` — the standard 1/5/15-minute load average, as plain numbers. Never raises.
+
+This is a genuine load average on every platform this module ships for, including Windows: sysinfo doesn't approximate it from CPU usage there, it samples a real Windows performance counter (`Processor Queue Length`) every 5 seconds in the background and folds it into the exact same exponential-moving-average formula the Linux kernel uses. It is **not** the same metric as `get_cpu_usage()` — load average reflects queue depth (processes wanting to run, including ones blocked on I/O), not a CPU-busy percentage, and a value above your core count is a normal, meaningful signal (unlike CPU usage, which caps out around 100% per core).
+
+Like `get_cpu_usage()`, the very first reads after module load (or after a fresh boot) will be near-zero — this is a genuine moving average that needs time to ramp up, not a bug or a platform gap.
+
 ### `sysinfo.get_system_name(): string`
 **Static.** Returns the system name.
 

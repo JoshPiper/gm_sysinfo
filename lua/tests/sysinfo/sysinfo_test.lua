@@ -55,6 +55,56 @@ return {
             end
         },
         {
+            name = "Reports used/free/available memory as positive bytes, never raising, consistent with total",
+            func = function()
+                local total = sysinfo.get_memory()
+                local used = sysinfo.get_used_memory()
+                local free = sysinfo.get_free_memory()
+                local available = sysinfo.get_available_memory()
+
+                for _, value in ipairs({ used, free, available }) do
+                    expect(value).to.beA("number")
+                    expect(value).to.beGreaterThan(0)
+                    expect(value).to.beLessThan(total)
+                end
+
+                -- available accounts for reclaimable cache that free doesn't,
+                -- so it should never be smaller.
+                expect(available).to.beGreaterThan(free - 1)
+            end
+        },
+        {
+            name = "Reports uptime and boot time consistently, never raising",
+            func = function()
+                local uptime = sysinfo.get_uptime()
+                local boot_time = sysinfo.get_boot_time()
+
+                expect(uptime).to.beA("number")
+                expect(boot_time).to.beA("number")
+                expect(uptime).toNot.beLessThan(0)
+
+                -- CI runners don't predate the epoch.
+                expect(boot_time).to.beGreaterThan(0)
+            end
+        },
+        {
+            name = "Reports CPU usage as a number in a sane range, never raising",
+            func = function()
+                local usage = sysinfo.get_cpu_usage()
+                expect(usage).to.beA("number")
+                expect(usage).toNot.beLessThan(0)
+                expect(usage).to.beLessThan(100 * sysinfo.get_core_count() + 1)
+            end
+        },
+        {
+            name = "Reports CPU architecture as a non-empty string, never raising",
+            func = function()
+                local arch = sysinfo.get_cpu_arch()
+                expect(arch).to.beA("string")
+                expect(#arch).to.beGreaterThan(0)
+            end
+        },
+        {
             name = "Identity getters return a non-empty string, or raise when unavailable",
             func = function()
                 -- Minimal containers may lack e.g. /etc/os-release, in which
@@ -73,6 +123,40 @@ return {
                         expect( value ).to.beA( "string" )
                         expect( #value ).to.beGreaterThan( 0 )
                     end
+                end
+            end
+        },
+        {
+            name = "Reports distro id as a non-empty string, never raising",
+            func = function()
+                -- CI runs on Linux, so this should be a real distro id --
+                -- but the contract holds on any platform.
+                local id = sysinfo.get_distro_id()
+                expect(id).to.beA("string")
+                expect(#id).to.beGreaterThan(0)
+            end
+        },
+        {
+            name = "Reports load average as a table of three non-negative numbers, never raising",
+            func = function()
+                local avg = sysinfo.get_load_average()
+                expect(avg).to.exist()
+
+                for _, key in ipairs({ "one", "five", "fifteen" }) do
+                    expect(avg[key]).to.beA("number")
+                    expect(avg[key]).toNot.beLessThan(0)
+                end
+            end
+        },
+        {
+            name = "Reports distro id-like as a table of strings, never raising",
+            func = function()
+                local relatives = sysinfo.get_distro_id_like()
+                expect(relatives).to.beA("table")
+
+                for _, relative in ipairs(relatives) do
+                    expect(relative).to.beA("string")
+                    expect(#relative).to.beGreaterThan(0)
                 end
             end
         },
