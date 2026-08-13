@@ -47,7 +47,11 @@ An [LuaLS](https://github.com/LuaLS/lua-language-server) type definition file is
 
 ## Semantics
 
-- Every value except `get_version()` and `get_build_info()` is **snapshotted once**, when the module loads, not re-read on each call — cheap to call repeatedly, but won't reflect a mid-session change (e.g. hot-added swap).
+- Values fall into two groups:
+  - **Static** — facts that don't change while the server runs (total memory, total swap, core count, OS/kernel version, hostname). Captured once, when the module loads, and never re-read.
+  - **Live** — values that do change (currently: used/free swap). Read fresh from the OS each call, though the underlying refresh is throttled internally to avoid hammering it on back-to-back calls, so a value may lag by a fraction of a second under heavy polling.
+
+  Each function's entry below says which group it's in.
 - Most getters **raise a Lua error** (rather than returning `nil`) if their value couldn't be read at all. A handful return `0` instead where zero is itself a legitimate answer rather than a failure signal — `get_swap()` on a swapless host being the common case — see each function's entry in the API reference below for which rule applies. If you're calling something platform-specific that might not apply to the host you're on, wrap it in `pcall`:
 
   ```lua
@@ -60,35 +64,41 @@ An [LuaLS](https://github.com/LuaLS/lua-language-server) type definition file is
 ## API Reference
 
 ### `sysinfo.get_core_count(): int`
-Returns the number of physical cores (not threads) on a system.
-  
+**Static.** Returns the number of physical cores (not threads) on a system.
+
 ### `sysinfo.get_memory(): number`
-Returns total system memory, in bytes.
+**Static.** Returns total system memory, in bytes.
 
 ```lua
 local mib = math.floor(sysinfo.get_memory() / 1024 / 1024)
 ```
 
 ### `sysinfo.get_swap(): number`
-Returns total swap space, in bytes. Returns `0` (never raises) if the host has no swap configured — that's a legitimate, common state, not a read failure.
-  
+**Static.** Returns total swap space, in bytes. Returns `0` (never raises) if the host has no swap configured — that's a legitimate, common state, not a read failure.
+
+### `sysinfo.get_used_swap(): number`
+**Live.** Returns swap currently in use, in bytes. Never raises.
+
+### `sysinfo.get_free_swap(): number`
+**Live.** Returns unused swap space, in bytes. Never raises.
+
 ### `sysinfo.get_system_name(): string`
-Returns the system name.
-  
+**Static.** Returns the system name.
+
 ### `sysinfo.get_host_name(): string`
-Returns the system DNS name.
-  
+**Static.** Returns the system DNS name.
+
 ### `sysinfo.get_system_long_version(): string`
-Returns the system version long name.
-  
+**Static.** Returns the system version long name.
+
 ### `sysinfo.get_system_version(): string`
-Returns the system version name.
-  
+**Static.** Returns the system version name.
+
 ### `sysinfo.get_kernel_version(): string`
-Returns the kernel version name.
+**Static.** Returns the kernel version name.
 
 ### `sysinfo.get_version(): string`
-Returns the module's own version, e.g. `"2.0.0"`.
+Returns the module's own version, e.g. `"2.0.0"`. Always live, but the version can't change without a restart, so the distinction is moot here.
 
 ### `sysinfo.get_build_info(): table`
 Returns build information for the running binary:
