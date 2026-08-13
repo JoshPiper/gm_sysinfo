@@ -1,3 +1,49 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+## [3.0.0](https://github.com/JoshPiper/gm_sysinfo/compare/v2.0.0...v3.0.0) - 2026-08-13
+
+### Added
+
+- add sysinfo.get_load_average()
+- add sysinfo.get_cpu_usage(), get_cpu_arch(), get_distro_id(), get_distro_id_like()
+- add sysinfo.get_uptime() and sysinfo.get_boot_time()
+- add sysinfo.get_used_memory(), get_free_memory(), get_available_memory()
+- add sysinfo.get_used_swap() and sysinfo.get_free_swap()
+- add throttled refresh infrastructure for dynamic metrics
+- embed build provenance and ship supply-chain artifacts
+
+### Fixed
+
+- use toNot.beLessThan(0) instead of beGreaterThan(-1) in the load average test
+- use toNot.beLessThan(0) instead of beGreaterThan(-1) in the CPU usage test
+- use toNot.beLessThan(0) instead of beGreaterThan(-1) in the uptime test
+- use toNot.beLessThan(0) instead of beGreaterThan(-1) in the used/free swap test
+- use toNot.beLessThan(0) instead of beGreaterThan(-1) in the swap test
+- [**breaking**] get_swap() no longer raises when no swap is configured
+
+### Other
+
+- drop inter-bracket spacing in the load average test
+- drop inter-bracket spacing in the CPU/distro tests
+- prune the get_distro_id_like comment per CONTRIBUTING.md
+- drop inter-bracket spacing in the uptime test
+- drop inter-bracket spacing in the memory test
+- drop inter-bracket spacing in the used/free swap test
+- cut the get_swap comment to one line
+- prune the get_swap comment per CONTRIBUTING.md
+- tighten the Cache doc comment further
+- prune the Cache doc comment per CONTRIBUTING.md
+- space the LuaLS description comments too
+- use "--- @tag" spacing in the LuaLS annotations
+- Refine language and formatting in README.md
+- rewrite README, ship a LuaLS type stub, round out crate metadata
 # [2.0.0](https://github.com/JoshPiper/gm_sysinfo/compare/v1.0.6...v2.0.0) (2026-08-13)
 
 
