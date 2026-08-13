@@ -3,6 +3,17 @@ name: Release
 on:
   push:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: >-
+          Existing release tag to (re)publish assets for, e.g. v3.0.0.
+          Rebuilds and republishes without waiting for a new version --
+          the recovery path when package-assets fails after the tag and
+          binaries already exist (its own steps are individually safe to
+          repeat: --clobber on upload, draft=false is idempotent).
+        required: true
+        type: string
 
 concurrency:
   group: release-plz-${{ github.ref }}
@@ -12,7 +23,7 @@ jobs:
   # until that PR is merged, so "not ready" is simply "don't merge it yet".
   release-pr:
     name: Open release PR
-    if: github.repository_owner == 'JoshPiper'
+    if: github.event_name == 'push' && github.repository_owner == 'JoshPiper'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -40,7 +51,7 @@ jobs:
   # release. On ordinary pushes this is a no-op (releases_created = false).
   release:
     name: Tag and create release
-    if: github.repository_owner == 'JoshPiper'
+    if: github.event_name == 'push' && github.repository_owner == 'JoshPiper'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -68,13 +79,15 @@ jobs:
   build-assets:
     name: Build release assets
     needs: release
-    if: needs.release.outputs.releases_created == 'true'
+    if: always() && (needs.release.outputs.releases_created == 'true' || github.event_name == 'workflow_dispatch')
     uses: ./.github/workflows/build.yml
+    with:
+      ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.sha }}
 
   package-assets:
     name: Provenance, SBOM, and publish
     needs: [release, build-assets]
-    if: needs.release.outputs.releases_created == 'true'
+    if: always() && needs.build-assets.result == 'success' && (needs.release.outputs.releases_created == 'true' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     permissions:
       contents: write # upload release assets, undraft the release
@@ -84,10 +97,17 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.sha }}
 
       - name: Determine tag
         id: tag
-        run: echo "tag=v$(grep -m1 '^version' Cargo.toml | cut -d '"' -f 2)" >> "$GITHUB_OUTPUT"
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "tag=${{ github.event.inputs.tag }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=v$(grep -m1 '^version' Cargo.toml | cut -d '"' -f 2)" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Install toolchain
         run: rustup toolchain install
@@ -108,7 +128,10 @@ jobs:
 
       - name: Assemble release assets
         run: |
-          mv bom.json "assets/gm_sysinfo-${{ steps.tag.outputs.tag }}.cdx.json"
+          # cargo-cyclonedx names its output after the crate, not "bom.json"
+          # (verified against the actual installed binary -- the crate's own
+          # docs say otherwise but are wrong, or at least out of date).
+          mv gm_sysinfo.cdx.json "assets/gm_sysinfo-${{ steps.tag.outputs.tag }}.cdx.json"
           cp sysinfo.lua assets/sysinfo.lua
           (cd assets && sha256sum -- * > SHA256SUMS)
 
