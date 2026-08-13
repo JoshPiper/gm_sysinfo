@@ -2,15 +2,23 @@
 name = "gm_sysinfo"
 version = "1.0.6"
 edition = "2021"
+description = "Garry's Mod binary module exposing system information to Lua"
+license = "MIT"
+repository = "https://github.com/JoshPiper/gm_sysinfo"
+publish = false
 
 [lib]
 name = "gm_sysinfo"
 crate-type = ["cdylib"]
 
 [features]
-gmcl = []
+gmcl = ["gmod/gmcl"]
 
 [dependencies]
-gmod = {version = "10.2.2", features = ["gmcl"], default-features = false}
-sysinfo = "*"
-lazy_static = "*"
+gmod = { version = "17", default-features = false }
+sysinfo = { version = "0.39", default-features = false, features = ["system"] }
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = "symbols"
