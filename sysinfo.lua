@@ -34,6 +34,23 @@ function sysinfo.get_used_swap() end
 --- @return number
 function sysinfo.get_free_swap() end
 
+--- Returns memory currently in use, in bytes. Never raises. Live -- read
+--- fresh from the OS each call (internally throttled).
+--- @return number
+function sysinfo.get_used_memory() end
+
+--- Returns memory not used for anything, in bytes. Never raises. On Linux,
+--- prefer get_available_memory() -- this excludes reclaimable disk cache.
+--- Live -- read fresh from the OS each call (internally throttled).
+--- @return number
+function sysinfo.get_free_memory() end
+
+--- Returns memory available for new allocations without swapping, in bytes.
+--- Never raises. Live -- read fresh from the OS each call (internally
+--- throttled).
+--- @return number
+function sysinfo.get_available_memory() end
+
 --- Returns the system name.
 --- Raises a Lua error if the system name could not be read.
 --- @return string

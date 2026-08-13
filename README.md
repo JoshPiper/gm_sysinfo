@@ -82,6 +82,15 @@ local mib = math.floor(sysinfo.get_memory() / 1024 / 1024)
 ### `sysinfo.get_free_swap(): number`
 **Live.** Returns unused swap space, in bytes. Never raises.
 
+### `sysinfo.get_used_memory(): number`
+**Live.** Returns memory currently in use, in bytes. Never raises.
+
+### `sysinfo.get_free_memory(): number`
+**Live.** Returns memory not used for anything, in bytes. Never raises. On Linux this is usually much lower than you'd expect — see `get_available_memory()`.
+
+### `sysinfo.get_available_memory(): number`
+**Live.** Returns memory available for new allocations without swapping, in bytes. Never raises. This is the number you almost always want over `get_free_memory()`: on Linux, "free" excludes memory the kernel is using for reclaimable disk cache, which in practice is available on demand. "Available" accounts for that.
+
 ### `sysinfo.get_system_name(): string`
 **Static.** Returns the system name.
 

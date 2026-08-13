@@ -55,6 +55,25 @@ return {
             end
         },
         {
+            name = "Reports used/free/available memory as positive bytes, never raising, consistent with total",
+            func = function()
+                local total = sysinfo.get_memory()
+                local used = sysinfo.get_used_memory()
+                local free = sysinfo.get_free_memory()
+                local available = sysinfo.get_available_memory()
+
+                for _, value in ipairs( { used, free, available } ) do
+                    expect( value ).to.beA( "number" )
+                    expect( value ).to.beGreaterThan( 0 )
+                    expect( value ).to.beLessThan( total )
+                end
+
+                -- available accounts for reclaimable cache that free doesn't,
+                -- so it should never be smaller.
+                expect( available ).to.beGreaterThan( free - 1 )
+            end
+        },
+        {
             name = "Identity getters return a non-empty string, or raise when unavailable",
             func = function()
                 -- Minimal containers may lack e.g. /etc/os-release, in which

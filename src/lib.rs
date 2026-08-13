@@ -141,6 +141,24 @@ unsafe fn get_free_swap(lua: State) -> i32 {
 }
 
 #[lua_function]
+unsafe fn get_used_memory(lua: State) -> i32 {
+    with_memory(|sys| lua.push_number(sys.used_memory() as f64));
+    1
+}
+
+#[lua_function]
+unsafe fn get_free_memory(lua: State) -> i32 {
+    with_memory(|sys| lua.push_number(sys.free_memory() as f64));
+    1
+}
+
+#[lua_function]
+unsafe fn get_available_memory(lua: State) -> i32 {
+    with_memory(|sys| lua.push_number(sys.available_memory() as f64));
+    1
+}
+
+#[lua_function]
 unsafe fn get_system_name(lua: State) -> i32 {
     if INFO.name.is_empty() {
         error(lua, err!("read the system name"));
@@ -256,12 +274,15 @@ unsafe fn gmod13_open(lua: State) -> i32 {
     LazyLock::force(&INFO);
 
     // Create _G.sysinfo
-    lua.create_table(0, 12);
+    lua.create_table(0, 15);
     export_lua_function!(get_core_count);
     export_lua_function!(get_memory);
     export_lua_function!(get_swap);
     export_lua_function!(get_used_swap);
     export_lua_function!(get_free_swap);
+    export_lua_function!(get_used_memory);
+    export_lua_function!(get_free_memory);
+    export_lua_function!(get_available_memory);
     export_lua_function!(get_system_name);
     export_lua_function!(get_system_long_version);
     export_lua_function!(get_system_version);
