@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.0](https://github.com/JoshPiper/gm_sysinfo/compare/v3.0.1...v3.1.0) - 2026-08-13
+
+### Added
+
+- add get_cpu_name and get_cpu_brand
+
 ## [3.0.1](https://github.com/JoshPiper/gm_sysinfo/compare/v3.0.0...v3.0.1) - 2026-08-13
 
 ### Fixed
