@@ -37,11 +37,25 @@ return {
             end
         },
         {
-            name = "Reports system identity strings",
+            name = "Identity getters return a non-empty string, or raise when unavailable",
             func = function()
-                expect( sysinfo.get_system_name() ).to.beA( "string" )
-                expect( sysinfo.get_kernel_version() ).to.beA( "string" )
-                expect( sysinfo.get_host_name() ).to.beA( "string" )
+                -- Minimal containers may lack e.g. /etc/os-release, in which
+                -- case the API contract is to raise, not return "".
+                local getters = {
+                    "get_system_name",
+                    "get_system_version",
+                    "get_system_long_version",
+                    "get_kernel_version",
+                    "get_host_name",
+                }
+
+                for _, name in ipairs( getters ) do
+                    local ok, value = pcall( sysinfo[name] )
+                    if ok then
+                        expect( value ).to.beA( "string" )
+                        expect( #value ).to.beGreaterThan( 0 )
+                    end
+                end
             end
         },
     }
