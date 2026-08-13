@@ -194,9 +194,8 @@ unsafe fn get_distro_id(lua: State) -> i32 {
 
 #[lua_function]
 unsafe fn get_distro_id_like(lua: State) -> i32 {
-    // A plain array of strings, commonly empty -- that's not a failure, most
-    // platforms (and plenty of Linux distros, e.g. Arch) just don't have any
-    // declared relatives.
+    // Commonly empty -- that's not a failure, most platforms (and plenty of
+    // Linux distros, e.g. Arch) just don't have any declared relatives.
     let ids = System::distribution_id_like();
     lua.create_table(ids.len() as i32, 0);
     for (i, id) in ids.iter().enumerate() {
