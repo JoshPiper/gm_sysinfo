@@ -2,6 +2,11 @@ name: Build
 
 on:
   workflow_call:
+    inputs:
+      ref:
+        description: Git ref to build. Defaults to the ref that triggered this run.
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -27,6 +32,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.sha }}
 
       # rustup reads rust-toolchain.toml: pinned nightly, components, targets.
       - name: Install toolchain
