@@ -81,7 +81,7 @@ return {
 
                 expect( uptime ).to.beA( "number" )
                 expect( boot_time ).to.beA( "number" )
-                expect( uptime ).to.beGreaterThan( -1 )
+                expect( uptime ).toNot.beLessThan( 0 )
 
                 -- CI runners don't predate the epoch.
                 expect( boot_time ).to.beGreaterThan( 0 )
