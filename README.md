@@ -14,7 +14,7 @@ Download a copy of the module from the [releases](https://github.com/JoshPiper/g
 <Garry's Mod Installation>/garrysmod/lua/bin/<filename>
 ```
 
-`<filename>` follows the pattern `gm<realm>_sysinfo_<platform>.dll` — note that **every platform's file ends in `.dll`**, including Linux and macOS; that's a Garry's Mod convention, not a mistake.
+`<filename>` follows the pattern `gm<realm>_sysinfo_<platform>.dll`.
 
 | Realm | Platform | Filename |
 |---|---|---|
@@ -43,7 +43,7 @@ local hostname = sysinfo.get_host_name() -- "game_server.example.com"
 local cores = sysinfo.get_core_count() -- 8
 ```
 
-An [LuaLS](https://github.com/LuaLS/lua-language-server) type definition file is available — see [Editor support](#editor-support) for autocomplete and inline docs while writing Lua against this module.
+An [LuaLS](https://github.com/LuaLS/lua-language-server) type definition file is available - see [Editor support](#editor-support) for autocomplete and inline docs while writing Lua against this module.
 
 ## Semantics
 
@@ -91,7 +91,7 @@ Returns the kernel version name.
 Returns the module's own version, e.g. `"2.0.0"`.
 
 ### `sysinfo.get_build_info(): table`
-Returns build provenance for the running binary:
+Returns build information for the running binary:
 
 ```lua
 {
@@ -109,7 +109,7 @@ Returns build provenance for the running binary:
 }
 ```
 
-`commit`, `commit_short`, and `dirty` are `nil` if the binary wasn't built from a git checkout. `repository` and `run_url` are empty strings outside of GitHub Actions. If `official` is `false`, or `run_url` doesn't resolve to a real workflow run, treat the binary as unverified — it wasn't built by this project's release pipeline.
+`commit`, `commit_short`, and `dirty` are `nil` if the binary wasn't built from a git checkout. `repository` and `run_url` are empty strings outside of GitHub Actions. If `official` is `false`, or `run_url` doesn't resolve to a real workflow run, treat the binary as unverified; it wasn't built by this project's release pipeline.
 
 ## Editor support
 
@@ -123,7 +123,7 @@ A [LuaLS](https://github.com/LuaLS/lua-language-server) type definition file, [`
 
 ## Building from source
 
-Requires the Rust nightly toolchain pinned in [`rust-toolchain.toml`](rust-toolchain.toml) — `rustup` installs it automatically on first build.
+Requires the Rust nightly toolchain pinned in [`rust-toolchain.toml`](rust-toolchain.toml), which `rustup` will automatically install on first build.
 
 ```bash
 git clone https://github.com/JoshPiper/gm_sysinfo
@@ -132,7 +132,9 @@ cargo build --release                    # server realm -> target/release/gm_sys
 cargo build --release --features gmcl    # client realm
 ```
 
-Cross-compiling to another target needs that target installed (`rustup target add <triple>`) and, for 32-bit Linux specifically, a multilib GCC (`gcc-multilib` on Debian/Ubuntu). See [`.github/workflows/build.yml`](.github/workflows/build.yml) for the exact target/feature matrix CI builds.
+Cross-compiling to another target needs that target installed (`rustup target add <triple>`) and, for 32-bit Linux specifically, a multilib GCC (`gcc-multilib` on Debian/Ubuntu).
+See [`.github/workflows/build.yml`](.github/workflows/build.yml) for the exact target/feature matrix CI builds.
+There are some reported pitfalls in cross compiling GMod binaries, so take care during the process.
 
 ## Verifying a release
 
@@ -143,8 +145,8 @@ gh attestation verify gmsv_sysinfo_linux64.dll -R JoshPiper/gm_sysinfo
 ```
 
 Each release also ships:
-- **`SHA256SUMS`** — checksums for every asset in the release.
-- **`gm_sysinfo-<version>.cdx.json`** — a [CycloneDX](https://cyclonedx.org/) software bill of materials for the dependency tree at that version.
+- **`SHA256SUMS`** - checksums for every asset in the release.
+- **`gm_sysinfo-<version>.cdx.json`** - a [CycloneDX](https://cyclonedx.org/) software bill of materials for the dependency tree at that version.
 
 Additionally, every binary is built with [`cargo-auditable`](https://github.com/rust-secure-code/cargo-auditable): the exact dependency versions that went into it are embedded in the file itself, so it can be scanned for known vulnerabilities on its own, without needing the SBOM asset or the source repository:
 
