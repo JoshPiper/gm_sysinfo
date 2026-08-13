@@ -62,15 +62,15 @@ return {
                 local free = sysinfo.get_free_memory()
                 local available = sysinfo.get_available_memory()
 
-                for _, value in ipairs( { used, free, available } ) do
-                    expect( value ).to.beA( "number" )
-                    expect( value ).to.beGreaterThan( 0 )
-                    expect( value ).to.beLessThan( total )
+                for _, value in ipairs({ used, free, available }) do
+                    expect(value).to.beA("number")
+                    expect(value).to.beGreaterThan(0)
+                    expect(value).to.beLessThan(total)
                 end
 
                 -- available accounts for reclaimable cache that free doesn't,
                 -- so it should never be smaller.
-                expect( available ).to.beGreaterThan( free - 1 )
+                expect(available).to.beGreaterThan(free - 1)
             end
         },
         {
