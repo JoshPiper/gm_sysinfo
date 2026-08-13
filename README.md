@@ -109,6 +109,13 @@ local mib = math.floor(sysinfo.get_memory() / 1024 / 1024)
 ### `sysinfo.get_distro_id_like(): table`
 **Static.** Returns an array of the distribution's closest relatives (e.g. `{"debian"}` for Ubuntu), as reported by the OS. Never raises — an empty table (`{}`) is the normal answer on most non-Linux platforms and plenty of Linux distributions too (Arch, for instance, declares none).
 
+### `sysinfo.get_load_average(): table`
+**Live.** Returns `{one, five, fifteen}` — the standard 1/5/15-minute load average, as plain numbers. Never raises.
+
+This is a genuine load average on every platform this module ships for, including Windows: sysinfo doesn't approximate it from CPU usage there, it samples a real Windows performance counter (`Processor Queue Length`) every 5 seconds in the background and folds it into the exact same exponential-moving-average formula the Linux kernel uses. It is **not** the same metric as `get_cpu_usage()` — load average reflects queue depth (processes wanting to run, including ones blocked on I/O), not a CPU-busy percentage, and a value above your core count is a normal, meaningful signal (unlike CPU usage, which caps out around 100% per core).
+
+Like `get_cpu_usage()`, the very first reads after module load (or after a fresh boot) will be near-zero — this is a genuine moving average that needs time to ramp up, not a bug or a platform gap.
+
 ### `sysinfo.get_system_name(): string`
 **Static.** Returns the system name.
 

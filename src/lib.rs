@@ -193,6 +193,19 @@ unsafe fn get_distro_id(lua: State) -> i32 {
 }
 
 #[lua_function]
+unsafe fn get_load_average(lua: State) -> i32 {
+    let avg = System::load_average();
+    lua.create_table(0, 3);
+    lua.push_number(avg.one);
+    lua.set_field(-2, lua_string!("one"));
+    lua.push_number(avg.five);
+    lua.set_field(-2, lua_string!("five"));
+    lua.push_number(avg.fifteen);
+    lua.set_field(-2, lua_string!("fifteen"));
+    1
+}
+
+#[lua_function]
 unsafe fn get_distro_id_like(lua: State) -> i32 {
     // Commonly empty -- that's not a failure, most platforms (and plenty of
     // Linux distros, e.g. Arch) just don't have any declared relatives.
@@ -321,7 +334,7 @@ unsafe fn gmod13_open(lua: State) -> i32 {
     LazyLock::force(&INFO);
 
     // Create _G.sysinfo
-    lua.create_table(0, 21);
+    lua.create_table(0, 22);
     export_lua_function!(get_core_count);
     export_lua_function!(get_memory);
     export_lua_function!(get_swap);
@@ -336,6 +349,7 @@ unsafe fn gmod13_open(lua: State) -> i32 {
     export_lua_function!(get_cpu_arch);
     export_lua_function!(get_distro_id);
     export_lua_function!(get_distro_id_like);
+    export_lua_function!(get_load_average);
     export_lua_function!(get_system_name);
     export_lua_function!(get_system_long_version);
     export_lua_function!(get_system_version);

@@ -137,6 +137,18 @@ return {
             end
         },
         {
+            name = "Reports load average as a table of three non-negative numbers, never raising",
+            func = function()
+                local avg = sysinfo.get_load_average()
+                expect( avg ).to.exist()
+
+                for _, key in ipairs( { "one", "five", "fifteen" } ) do
+                    expect( avg[key] ).to.beA( "number" )
+                    expect( avg[key] ).to.beGreaterThan( -1 )
+                end
+            end
+        },
+        {
             name = "Reports distro id-like as a table of strings, never raising",
             func = function()
                 local relatives = sysinfo.get_distro_id_like()

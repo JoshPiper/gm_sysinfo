@@ -84,6 +84,21 @@ function sysinfo.get_distro_id() end
 --- @return string[]
 function sysinfo.get_distro_id_like() end
 
+--- @class SysinfoLoadAverage
+--- @field one number
+--- @field five number
+--- @field fifteen number
+
+--- Returns the standard 1/5/15-minute load average. Never raises. A genuine
+--- load average on every platform (including Windows -- sysinfo samples a
+--- real performance counter there, it doesn't approximate from CPU usage).
+--- Not the same metric as get_cpu_usage() -- this reflects queue depth, not
+--- a CPU-busy percentage, so values above the core count are normal. The
+--- first reads after module load (or a fresh boot) are near-zero; that's the
+--- moving average ramping up, not a bug.
+--- @return SysinfoLoadAverage
+function sysinfo.get_load_average() end
+
 --- Returns the system name.
 --- Raises a Lua error if the system name could not be read.
 --- @return string
