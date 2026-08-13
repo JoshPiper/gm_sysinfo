@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # Weekly build to catch toolchain and dependency drift while the repo is quiet.
+    - cron: "0 6 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install toolchain
+        run: rustup toolchain install
+
+      - name: Format
+        run: cargo fmt --check
+
+      - name: Clippy (server)
+        run: cargo clippy --all-targets --locked -- -D warnings
+
+      - name: Clippy (client)
+        run: cargo clippy --all-targets --locked --features gmcl -- -D warnings
+
+  build:
+    name: Build
+    uses: ./.github/workflows/build.yml
+
+  test-linux64:
+    name: GluaTest (x86-64 branch)
+    needs: build
+    uses: CFC-Servers/GLuaTest/.github/workflows/run_tests.yml@main
+    with:
+      branch: x86-64
+      download-artifact: gmsv_sysinfo_linux64.dll
+      additional-setup: |
+        mkdir -p "$GITHUB_WORKSPACE/garrysmod_override/lua/bin"
+        cp "$GITHUB_WORKSPACE/gluatest/docker/_gluatest_artifacts/gmsv_sysinfo_linux64.dll" "$GITHUB_WORKSPACE/garrysmod_override/lua/bin/"
+
+  test-linux32:
+    name: GluaTest (main branch)
+    needs: build
+    uses: CFC-Servers/GLuaTest/.github/workflows/run_tests.yml@main
+    with:
+      download-artifact: gmsv_sysinfo_linux.dll
+      additional-setup: |
+        mkdir -p "$GITHUB_WORKSPACE/garrysmod_override/lua/bin"
+        cp "$GITHUB_WORKSPACE/gluatest/docker/_gluatest_artifacts/gmsv_sysinfo_linux.dll" "$GITHUB_WORKSPACE/garrysmod_override/lua/bin/"
