@@ -7,3 +7,13 @@ git_release_enable = true
 # so a release is never visible without its assets.
 git_release_draft = true
 changelog_update = true
+
+[[package]]
+name = "gm_sysinfo"
+# Without this, release-plz falls back to checking crates.io for the
+# package's current version. gm_sysinfo has never been published there,
+# so that lookup finds nothing and release-plz silently concludes there's
+# nothing to release -- confirmed by reproducing it locally with the
+# release-plz binary. git_only makes it use git tags instead, which is
+# what git_tag_enable/git_release_enable above already assume.
+git_only = true
