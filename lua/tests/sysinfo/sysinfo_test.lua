@@ -92,7 +92,7 @@ return {
             func = function()
                 local usage = sysinfo.get_cpu_usage()
                 expect( usage ).to.beA( "number" )
-                expect( usage ).to.beGreaterThan( -1 )
+                expect( usage ).toNot.beLessThan( 0 )
                 expect( usage ).to.beLessThan( 100 * sysinfo.get_core_count() + 1 )
             end
         },
