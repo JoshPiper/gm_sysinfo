@@ -116,6 +116,27 @@ This is a genuine load average on every platform this module ships for, includin
 
 Like `get_cpu_usage()`, the very first reads after module load (or after a fresh boot) will be near-zero — this is a genuine moving average that needs time to ramp up, not a bug or a platform gap.
 
+### `sysinfo.get_disks(): table`
+**Live.** Returns an array of disk tables, one per mounted disk:
+
+```lua
+{
+    {
+        name            = "nvme0n1p2",
+        mount_point     = "/",
+        file_system     = "ext4",
+        kind            = "SSD",   -- "SSD", "HDD", or "Unknown"
+        total_space     = 512110190592, -- bytes
+        available_space = 274877906944, -- bytes
+        removable       = false,
+        read_only       = false,
+    },
+    ...
+}
+```
+
+Never raises. An empty table is possible in containerised environments — overlay filesystems often aren't listed as disks — so don't assume at least one entry when running under Docker/Pterodactyl-style hosting.
+
 ### `sysinfo.get_system_name(): string`
 **Static.** Returns the system name.
 

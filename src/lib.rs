@@ -4,7 +4,8 @@ use std::time::Instant;
 use gmod::lua::{LuaString, State};
 use gmod::{gmod13_close, gmod13_open, lua_function, lua_string};
 use sysinfo::{
-    CpuRefreshKind, MemoryRefreshKind, RefreshKind, System, MINIMUM_CPU_UPDATE_INTERVAL,
+    CpuRefreshKind, DiskRefreshKind, Disks, MemoryRefreshKind, RefreshKind, System,
+    MINIMUM_CPU_UPDATE_INTERVAL,
 };
 
 mod build_info {
@@ -98,6 +99,36 @@ fn with_cpu<T>(f: impl FnOnce(&System) -> T) -> T {
         cache.last_cpu_refresh = Some(Instant::now());
     }
     f(&cache.system)
+}
+
+/// Separate from `Cache`: disks live in their own sysinfo collection, not on
+/// `System`. Same throttle interval as the rest for consistency.
+struct DisksCache {
+    disks: Disks,
+    last_refresh: Option<Instant>,
+}
+
+static DISKS: LazyLock<Mutex<DisksCache>> = LazyLock::new(|| {
+    Mutex::new(DisksCache {
+        disks: Disks::new(),
+        last_refresh: None,
+    })
+});
+
+fn with_disks<T>(f: impl FnOnce(&Disks) -> T) -> T {
+    let mut cache = DISKS.lock().unwrap_or_else(|e| e.into_inner());
+    if cache
+        .last_refresh
+        .is_none_or(|t| t.elapsed() >= MINIMUM_CPU_UPDATE_INTERVAL)
+    {
+        // io_usage left off: I/O counters are diff-based like CPU usage and
+        // aren't exposed yet, so there's no point paying for them.
+        cache
+            .disks
+            .refresh_specifics(true, DiskRefreshKind::nothing().with_kind().with_storage());
+        cache.last_refresh = Some(Instant::now());
+    }
+    f(&cache.disks)
 }
 
 #[lua_function]
@@ -202,6 +233,35 @@ unsafe fn get_load_average(lua: State) -> i32 {
     lua.set_field(-2, lua_string!("five"));
     lua.push_number(avg.fifteen);
     lua.set_field(-2, lua_string!("fifteen"));
+    1
+}
+
+#[lua_function]
+unsafe fn get_disks(lua: State) -> i32 {
+    with_disks(|disks| {
+        let list = disks.list();
+        lua.create_table(list.len() as i32, 0);
+        for (i, disk) in list.iter().enumerate() {
+            lua.create_table(0, 8);
+            lua.push_string(&disk.name().to_string_lossy());
+            lua.set_field(-2, lua_string!("name"));
+            lua.push_string(&disk.mount_point().to_string_lossy());
+            lua.set_field(-2, lua_string!("mount_point"));
+            lua.push_string(&disk.file_system().to_string_lossy());
+            lua.set_field(-2, lua_string!("file_system"));
+            lua.push_string(&disk.kind().to_string());
+            lua.set_field(-2, lua_string!("kind"));
+            lua.push_number(disk.total_space() as f64);
+            lua.set_field(-2, lua_string!("total_space"));
+            lua.push_number(disk.available_space() as f64);
+            lua.set_field(-2, lua_string!("available_space"));
+            lua.push_boolean(disk.is_removable());
+            lua.set_field(-2, lua_string!("removable"));
+            lua.push_boolean(disk.is_read_only());
+            lua.set_field(-2, lua_string!("read_only"));
+            lua.raw_seti(-2, (i + 1) as i32);
+        }
+    });
     1
 }
 
@@ -334,7 +394,7 @@ unsafe fn gmod13_open(lua: State) -> i32 {
     LazyLock::force(&INFO);
 
     // Create _G.sysinfo
-    lua.create_table(0, 22);
+    lua.create_table(0, 23);
     export_lua_function!(get_core_count);
     export_lua_function!(get_memory);
     export_lua_function!(get_swap);
@@ -350,6 +410,7 @@ unsafe fn gmod13_open(lua: State) -> i32 {
     export_lua_function!(get_distro_id);
     export_lua_function!(get_distro_id_like);
     export_lua_function!(get_load_average);
+    export_lua_function!(get_disks);
     export_lua_function!(get_system_name);
     export_lua_function!(get_system_long_version);
     export_lua_function!(get_system_version);

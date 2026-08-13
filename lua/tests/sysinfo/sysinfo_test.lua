@@ -161,6 +161,31 @@ return {
             end
         },
         {
+            name = "Reports disks as a table of well-formed disk entries, never raising",
+            func = function()
+                -- May legitimately be empty in containers (overlay
+                -- filesystems aren't listed as disks), so only the shape of
+                -- present entries is asserted, not a minimum count.
+                local disks = sysinfo.get_disks()
+                expect(disks).to.beA("table")
+
+                for _, disk in ipairs(disks) do
+                    expect(disk.name).to.beA("string")
+                    expect(disk.mount_point).to.beA("string")
+                    expect(#disk.mount_point).to.beGreaterThan(0)
+                    expect(disk.file_system).to.beA("string")
+                    expect(disk.kind).to.beA("string")
+                    expect(disk.total_space).to.beA("number")
+                    expect(disk.available_space).to.beA("number")
+                    expect(disk.total_space).toNot.beLessThan(0)
+                    expect(disk.available_space).toNot.beLessThan(0)
+                    expect(disk.available_space).toNot.beGreaterThan(disk.total_space)
+                    expect(disk.removable).to.beA("boolean")
+                    expect(disk.read_only).to.beA("boolean")
+                end
+            end
+        },
+        {
             name = "Reports its own version as a non-empty string",
             func = function()
                 local version = sysinfo.get_version()

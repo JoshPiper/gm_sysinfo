@@ -99,6 +99,22 @@ function sysinfo.get_distro_id_like() end
 --- @return SysinfoLoadAverage
 function sysinfo.get_load_average() end
 
+--- @class SysinfoDisk
+--- @field name string
+--- @field mount_point string
+--- @field file_system string # e.g. "ext4", "NTFS"
+--- @field kind "SSD"|"HDD"|"Unknown"
+--- @field total_space number # bytes
+--- @field available_space number # bytes
+--- @field removable boolean
+--- @field read_only boolean
+
+--- Returns an array of mounted disks. Never raises. Live -- read fresh from
+--- the OS each call (internally throttled). May be empty in containerised
+--- environments where overlay filesystems aren't listed as disks.
+--- @return SysinfoDisk[]
+function sysinfo.get_disks() end
+
 --- Returns the system name.
 --- Raises a Lua error if the system name could not be read.
 --- @return string
