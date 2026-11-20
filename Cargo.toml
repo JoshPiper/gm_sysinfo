@@ -20,7 +20,7 @@ gmcl = ["gmod/gmcl"]
 
 [dependencies]
 gmod = { version = "17", default-features = false }
-sysinfo = { version = "0.39", default-features = false, features = ["system"] }
+sysinfo = { version = "0.40", default-features = false, features = ["system"] }
 
 [build-dependencies]
 built = { version = "0.8", features = ["chrono", "gix"] }
